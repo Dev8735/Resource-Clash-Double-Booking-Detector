@@ -7,13 +7,10 @@
 <meta name="description" content="Automatic conflict detection for travel agency resource scheduling — drivers, vehicles, guides, rooms." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-<!-- Toast Notification Container -->
-<div id="toast-container" class="toast-container"></div>
 
 <header class="topbar">
   <div class="brand">
@@ -24,7 +21,6 @@
     </div>
   </div>
   <div class="topbar-right">
-    <button id="demo-btn" class="btn btn-demo" title="Watch an automated conflict-detection walkthrough">▶ Watch Demo</button>
     <span class="live-dot"></span>
     <span id="live-clock" class="live-clock"></span>
   </div>
@@ -39,22 +35,14 @@
         <p class="panel-sub" id="board-range-label">—</p>
       </div>
       <div class="board-controls">
-        <div class="search-wrap">
-          <span class="search-icon">⌕</span>
-          <input id="search-input" type="text" class="text-input" placeholder="Search resources…" aria-label="Search resources" />
-        </div>
-        <div class="view-toggle">
-          <button class="view-toggle-btn active" data-view="grid">Grid</button>
-          <button class="view-toggle-btn" data-view="timeline">Timeline</button>
-        </div>
         <select id="type-filter" class="select-input" aria-label="Filter by resource type"></select>
         <button id="prev-week-btn" class="btn btn-ghost" aria-label="Previous week">‹</button>
+        <button id="today-btn" class="btn btn-ghost">Today</button>
         <button id="next-week-btn" class="btn btn-ghost" aria-label="Next week">›</button>
-        <button id="print-btn" class="btn btn-ghost">Export<span class="kbd">Ctrl+P</span></button>
+        <button id="print-btn" class="btn btn-ghost">Export / Print</button>
       </div>
     </div>
     <div id="board" class="board-wrap"></div>
-    <div id="timeline" class="timeline-wrap hidden"></div>
     <div class="legend">
       <span class="legend-item"><span class="dot status-available"></span> Open</span>
       <span class="legend-item"><span class="dot status-booked"></span> Booked</span>
@@ -84,7 +72,7 @@
     </section>
 
     <section class="panel panel-form">
-      <h2>New Booking <span class="kbd">N</span></h2>
+      <h2>New Booking</h2>
       <form id="booking-form">
         <label class="field">
           <span>Resource type</span>
@@ -116,7 +104,7 @@
             <input id="form-end" type="date" class="text-input" required />
           </label>
         </div>
-        <button type="submit" class="btn btn-primary btn-block">⚡ Check &amp; Book</button>
+        <button type="submit" class="btn btn-primary btn-block">Check &amp; Book</button>
         <p id="form-feedback" class="form-feedback" role="status"></p>
       </form>
     </section>
@@ -124,7 +112,6 @@
     <section class="panel panel-forecast">
       <h2>Booking Pressure</h2>
       <p class="panel-sub">Rule-based heuristic — utilization by resource type this week</p>
-      <div id="donut-charts" class="donut-wrap" style="flex-wrap:wrap;gap:16px;"></div>
       <ul id="forecast-list" class="forecast-list"></ul>
     </section>
 
@@ -133,19 +120,18 @@
       <ul id="alert-feed" class="alert-feed"></ul>
     </section>
 
-    <button id="reset-demo-btn" class="btn btn-ghost btn-block">↺ Reset demo data<span class="kbd">R</span></button>
+    <button id="reset-demo-btn" class="btn btn-ghost btn-block">Reset demo data</button>
 
   </aside>
 </main>
 
 <footer class="footer">
-  <p>Prototype for the Travel &amp; Hospitality Hackathon · Solo — Dev Chokhawala · Data shown is simulated demo data · <span style="color:rgba(255,255,255,0.2)">Press <kbd style="font-family:var(--font-mono);padding:1px 5px;border:1px solid rgba(255,255,255,0.15);border-radius:3px;font-size:10px;">?</kbd> for keyboard shortcuts</span></p>
+  <p>Prototype for the Travel &amp; Hospitality Hackathon · Solo — Dev Chokhawala · Data shown is simulated demo data</p>
 </footer>
 
-<!-- Conflict Modal -->
 <div id="conflict-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="conflict-modal-title">
   <div class="modal-card">
-    <h3 id="conflict-modal-title">⚠ Clash Detected</h3>
+    <h3 id="conflict-modal-title">⚠ Clash detected</h3>
     <div id="conflict-modal-body"></div>
     <div class="modal-actions">
       <button id="conflict-cancel-btn" class="btn btn-ghost">Cancel</button>
@@ -155,33 +141,7 @@
   </div>
 </div>
 
-<!-- Keyboard Shortcuts Modal -->
-<div id="shortcuts-modal" class="modal hidden" role="dialog" aria-modal="true">
-  <div class="modal-card" style="max-width:380px;border-color:var(--border);">
-    <h3 style="color:var(--cyan);">⌨ Keyboard Shortcuts</h3>
-    <ul class="shortcuts-list">
-      <li><span>New booking</span><span class="kbd">N</span></li>
-      <li><span>Search resources</span><span class="kbd">/</span></li>
-      <li><span>Previous week</span><span class="kbd">←</span></li>
-      <li><span>Next week</span><span class="kbd">→</span></li>
-      <li><span>Toggle Grid / Timeline</span><span class="kbd">T</span></li>
-      <li><span>Reset demo data</span><span class="kbd">R</span></li>
-      <li><span>Watch demo</span><span class="kbd">D</span></li>
-      <li><span>Export / Print</span><span class="kbd">Ctrl+P</span></li>
-      <li><span>Undo last booking</span><span class="kbd">Ctrl+Z</span></li>
-      <li><span>Close this dialog</span><span class="kbd">Esc</span></li>
-    </ul>
-    <button id="shortcuts-close-btn" class="btn btn-ghost btn-block" style="margin-top:14px;">Close</button>
-  </div>
-</div>
-
-<!-- Auto-demo overlay -->
-<div id="demo-overlay" class="demo-overlay hidden">
-  <span class="demo-step-num" id="demo-step-num">Step 1/4</span>
-  <span class="demo-step-text" id="demo-step-text">Loading…</span>
-  <button id="demo-stop-btn" class="btn btn-ghost" style="font-size:11px;">✕ Stop</button>
-</div>
-
+<script src="conflict-engine.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
 </body>
