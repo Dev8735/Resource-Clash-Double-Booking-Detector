@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resource Clash & Double-Booking Detector</title>
+<meta name="description" content="Automatic conflict detection for travel agency resource scheduling — drivers, vehicles, guides, rooms." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">◈</span>
+    <div class="brand-text">
+      <h1>Resource Clash &amp; Double-Booking Detector</h1>
+      <p class="brand-sub">Live scheduling board for drivers, vehicles, guides &amp; rooms</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="live-dot"></span>
+    <span id="live-clock" class="live-clock"></span>
+  </div>
+</header>
+
+<main class="layout">
+
+  <section class="panel panel-board">
+    <div class="panel-head">
+      <div>
+        <h2>Schedule Board</h2>
+        <p class="panel-sub" id="board-range-label">—</p>
+      </div>
+      <div class="board-controls">
+        <select id="type-filter" class="select-input" aria-label="Filter by resource type"></select>
+        <button id="prev-week-btn" class="btn btn-ghost" aria-label="Previous week">‹</button>
+        <button id="next-week-btn" class="btn btn-ghost" aria-label="Next week">›</button>
+        <button id="print-btn" class="btn btn-ghost">Export / Print</button>
+      </div>
+    </div>
+    <div id="board" class="board-wrap"></div>
+    <div class="legend">
+      <span class="legend-item"><span class="dot status-available"></span> Open</span>
+      <span class="legend-item"><span class="dot status-booked"></span> Booked</span>
+      <span class="legend-item"><span class="dot status-conflict"></span> Conflict</span>
+    </div>
+  </section>
+
+  <aside class="side-col">
+
+    <section class="panel panel-stats">
+      <div class="stat-card">
+        <span class="stat-value" id="stat-bookings">0</span>
+        <span class="stat-label">Active bookings</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="stat-conflicts">0</span>
+        <span class="stat-label">Open conflicts</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="stat-resources">0</span>
+        <span class="stat-label">Resources tracked</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="stat-utilization">0%</span>
+        <span class="stat-label">Utilization, this week</span>
+      </div>
+    </section>
+
+    <section class="panel panel-form">
+      <h2>New Booking</h2>
+      <form id="booking-form">
+        <label class="field">
+          <span>Resource type</span>
+          <select id="form-type" class="select-input"></select>
+        </label>
+        <label class="field">
+          <span>Resource</span>
+          <select id="form-resource" class="select-input"></select>
+        </label>
+        <div id="form-new-resource-wrap" class="field hidden">
+          <span>New resource name</span>
+          <input id="form-new-resource-name" type="text" class="text-input" placeholder="e.g. Driver: Kavya Rao" />
+        </div>
+        <label class="field">
+          <span>Trip / job name</span>
+          <input id="form-trip" type="text" class="text-input" placeholder="e.g. Goa Beach Circuit" required />
+        </label>
+        <label class="field">
+          <span>Customer</span>
+          <input id="form-customer" type="text" class="text-input" placeholder="e.g. Sharma Family" required />
+        </label>
+        <div class="field-row">
+          <label class="field">
+            <span>Start date</span>
+            <input id="form-start" type="date" class="text-input" required />
+          </label>
+          <label class="field">
+            <span>End date</span>
+            <input id="form-end" type="date" class="text-input" required />
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Check &amp; Book</button>
+        <p id="form-feedback" class="form-feedback" role="status"></p>
+      </form>
+    </section>
+
+    <section class="panel panel-forecast">
+      <h2>Booking Pressure</h2>
+      <p class="panel-sub">Rule-based heuristic — utilization by resource type this week</p>
+      <ul id="forecast-list" class="forecast-list"></ul>
+    </section>
+
+    <section class="panel panel-alerts">
+      <h2>Conflict Feed</h2>
+      <ul id="alert-feed" class="alert-feed"></ul>
+    </section>
+
+    <button id="reset-demo-btn" class="btn btn-ghost btn-block">Reset demo data</button>
+
+  </aside>
+</main>
+
+<footer class="footer">
+  <p>Prototype for the Travel &amp; Hospitality Hackathon · Solo — Dev Chokhawala · Data shown is simulated demo data</p>
+</footer>
+
+<div id="conflict-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="conflict-modal-title">
+  <div class="modal-card">
+    <h3 id="conflict-modal-title">⚠ Clash detected</h3>
+    <div id="conflict-modal-body"></div>
+    <div class="modal-actions">
+      <button id="conflict-cancel-btn" class="btn btn-ghost">Cancel</button>
+      <button id="conflict-switch-btn" class="btn btn-primary">Switch resource</button>
+      <button id="conflict-proceed-btn" class="btn btn-danger">Book anyway</button>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
