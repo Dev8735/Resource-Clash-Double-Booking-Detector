@@ -178,7 +178,9 @@ function updateClock() {
 function shiftBoard(days) {
   const d = new Date(boardStartDate + "T00:00:00");
   d.setDate(d.getDate() + days);
-  boardStartDate = fmtDate(d);
+  const today = dayOffset(0);
+  const candidate = fmtDate(d);
+  boardStartDate = candidate < today ? today : candidate;
   renderBoard();
 }
 
@@ -224,6 +226,8 @@ function renderAll() {
 
 function renderBoard() {
   const dates = boardDates();
+  const today = dayOffset(0);
+  els.prevWeekBtn.disabled = (dates[0] <= today);
   const first = new Date(dates[0] + "T00:00:00");
   const last = new Date(dates[dates.length - 1] + "T00:00:00");
   els.boardRangeLabel.textContent = `${first.toLocaleDateString(undefined, { month: "short", day: "numeric" })} — ${last.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
@@ -1117,7 +1121,7 @@ function handleKeyboardShortcuts(e) {
   // Arrow Left = Previous Week
   if (e.key === "ArrowLeft") {
     e.preventDefault();
-    shiftBoard(-BOARD_DAYS);
+    if (!els.prevWeekBtn.disabled) shiftBoard(-BOARD_DAYS);
   }
 
   // Arrow Right = Next Week

@@ -692,3 +692,11 @@ kbd {
   border-color: rgba(0, 230, 118, 0.3);
   color: #00e676;
 }
+
+/* Disabled navigation button */
+button:disabled,
+button[disabled] {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
