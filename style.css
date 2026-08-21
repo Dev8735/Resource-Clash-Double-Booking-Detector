@@ -541,3 +541,154 @@ kbd {
   body { background: #fff; color: #000; }
   .board-container { overflow: visible; }
 }
+
+/* ---------- Operations Control Center Enhancements ---------- */
+
+/* Status Badges */
+.status-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.status-pill.confirmed {
+  background: rgba(0, 212, 255, 0.15);
+  color: #00d4ff;
+  border: 1px solid rgba(0, 212, 255, 0.4);
+}
+.status-pill.conflict {
+  background: rgba(255, 59, 92, 0.2);
+  color: #ff3b5c;
+  border: 1px solid rgba(255, 59, 92, 0.5);
+  animation: pulse-conflict 2s infinite;
+}
+.status-pill.resolved {
+  background: rgba(0, 230, 118, 0.15);
+  color: #00e676;
+  border: 1px solid rgba(0, 230, 118, 0.4);
+}
+.status-pill.cancelled {
+  background: rgba(255, 255, 255, 0.08);
+  color: #888888;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+@keyframes pulse-conflict {
+  0% { box-shadow: 0 0 0 0 rgba(255, 59, 92, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(255, 59, 92, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 59, 92, 0); }
+}
+
+/* Tone styling for resolved stat box */
+.tone-resolved { color: #00e676; }
+
+/* Operational Summary Grid */
+.operational-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+.summary-metric-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.summary-icon {
+  font-size: 14px;
+}
+.summary-details {
+  display: flex;
+  flex-direction: column;
+}
+.summary-val {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.summary-lbl {
+  font-size: 10.5px;
+  color: var(--text-dim);
+  line-height: 1.2;
+}
+
+/* Severity Badges */
+.severity-badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.08em;
+}
+.severity-low { background: rgba(255, 183, 77, 0.2); color: #ffb74d; border: 1px solid #ffb74d; }
+.severity-medium { background: rgba(255, 152, 0, 0.2); color: #ff9800; border: 1px solid #ff9800; }
+.severity-high { background: rgba(255, 87, 34, 0.25); color: #ff5722; border: 1px solid #ff5722; }
+.severity-critical { background: rgba(255, 23, 68, 0.3); color: #ff1744; border: 1px solid #ff1744; box-shadow: 0 0 10px rgba(255,23,68,0.4); }
+
+/* How This Solves The Problem Section */
+.impact-card { margin-bottom: 16px; }
+.impact-comparison {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+.impact-column {
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.impact-column.without {
+  background: rgba(255, 59, 92, 0.06);
+  border: 1px solid rgba(255, 59, 92, 0.2);
+}
+.impact-column.with {
+  background: rgba(0, 230, 118, 0.06);
+  border: 1px solid rgba(0, 230, 118, 0.2);
+}
+.impact-header {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.impact-column.without .impact-header { color: #ff4d4d; }
+.impact-column.with .impact-header { color: #00e676; }
+.impact-column ul {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 11.5px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* Enhanced Modal Layout */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+.modal-header h2 { margin: 0; font-size: 16px; }
+.conflict-modal-wide { max-width: 580px; }
+.ghost-style { background: transparent !important; color: var(--text-dim) !important; border: 1px solid var(--border) !important; }
+.ghost-style:hover { background: rgba(255,255,255,0.05) !important; color: var(--text) !important; }
+
+/* Status cell on board for resolved */
+.board-cell.status-resolved {
+  background: rgba(0, 230, 118, 0.12);
+  border-color: rgba(0, 230, 118, 0.3);
+  color: #00e676;
+}

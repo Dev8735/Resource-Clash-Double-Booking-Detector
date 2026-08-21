@@ -1,190 +1,135 @@
 # Resource Clash & Double-Booking Detector
 
-**Travel & Hospitality Hackathon — Solo project by Dev Chokhawala**
+**Travel & Hospitality Operations Control Center**
 
-A scheduling dashboard for travel agencies that automatically detects double-bookings
-across drivers, vehicles, guides, and hotel rooms — the moment a new booking is entered
-— and suggests an available alternative instead of leaving staff to discover the clash
-the day of the trip.
+A browser-based operations control system for travel agencies that automatically detects double-bookings across drivers, vehicles, guides, and hotel rooms — evaluates conflict risk severity, suggests available alternatives, enforces strict date validation, and enables one-click automated resolution.
 
-> Live demo (GitHub Pages): **`https://dev8735.github.io/Resource-Clash-Double-Booking-Detector/`**
-> *(enable Pages once the repo is pushed — steps below)*
+> Live Demo (GitHub Pages): **`https://dev8735.github.io/Resource-Clash-Double-Booking-Detector/`**
 
 ---
 
-## 1. The problem
+## 1. Problem
 
-Travel agency operations staff track driver, vehicle, guide, and hotel-room schedules
-manually in spreadsheets or registers. During peak season, when many trips overlap,
-it's easy to double-book the same driver or vehicle for two trips on the same day.
-The clash is usually discovered right before the trip starts, causing last-minute
-scrambling, cancellations, and damaged customer trust.
+Travel and hospitality operators manage multiple resources such as drivers, vehicles, guides, and hotel rooms across overlapping itineraries. Manual scheduling using spreadsheets or registers frequently causes double-booking, resulting in last-minute cancellations, emergency driver replacement scrambling, customer dissatisfaction, and operational disruption.
 
-## 2. The solution
+## 2. Solution
 
-Every booking is checked against existing bookings for the same resource, on the same
-dates, the instant it's entered:
+A live operations control center that automatically validates and checks every booking request against existing resource schedules in real time:
 
-- **No clash** → the booking is confirmed instantly.
-- **Clash found** → an alert is raised immediately, showing exactly which existing
-  booking(s) it collides with, and the system suggests an available alternative
-  resource of the same type for that exact date range — so staff can re-route the
-  booking in one click instead of manually re-checking the whole register.
+- **Strict Date Validation**: Blocks past dates (`"Enter a valid date. Bookings cannot be made for past dates."`) and invalid date ranges.
+- **Automatic Overlap Detection**: Instant date-range comparison for every resource type.
+- **Rule-Based Conflict Severity**: Assesses operational risk (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`) and details affected trip dependencies.
+- **One-Click Conflict Resolution**: Suggests available alternatives of the same resource type and reassigns bookings in one click (`CONFIRMED → CONFLICT → RESOLVED`).
+- **Operations Dashboard**: Real-time stats, Today's Operational Summary metrics, conflict feed, utilization forecasting, and before/after problem-solving impact analysis.
 
-A live schedule board shows every tracked resource against the coming week, with
-**Open / Booked / Conflict** states colour-coded at a glance, plus a rolling conflict
-feed and a booking-pressure panel that flags resource types running hot.
-
-## 3. How it works
+## 3. Operations Workflow Story
 
 ```
-New booking entered  →  Automatic conflict check  →  Conflict?
-                                                        ├─ No  → Booking confirmed instantly
-                                                        └─ Yes → Alert raised
-                                                                  → Alternative resource suggested
-                                                                  → Staff chooses: switch / book anyway / cancel
+TRAVEL AGENCY OPERATIONAL PROBLEM
+        ↓
+Staff Member Creates a Booking
+        ↓
+Date Validation (Past-date prevention)
+        ↓
+Resource Availability Check
+        ↓
+Overlapping Booking Detected
+        ↓
+Conflict Details & Severity Assessed (LOW / MEDIUM / HIGH / CRITICAL)
+        ↓
+Available Alternative Resource Suggested
+        ↓
+One-Click Automated Switch ("Switch Automatically")
+        ↓
+Booking Status Updated to RESOLVED
+        ↓
+Schedule Board + Dashboard + Activity Feed Updated Immediately
 ```
 
-The core check is a date-range overlap comparison
-(`startA <= endB && startB <= endA`) run per resource — see `findOverlaps()` in
-`app.js`. Alternative resources are found by filtering resources of the same type
-that have **zero** overlapping bookings for the requested range
-(`findAvailableAlternatives()`).
-
-## 4. Features implemented in this prototype
+## 4. Implemented Features
 
 | Feature | Status |
 |---|---|
-| Add a booking (resource type, resource, trip, customer, dates) | ✅ Implemented |
-| Real-time overlap/clash detection per resource | ✅ Implemented |
-| Conflict alert with the specific colliding booking(s) shown | ✅ Implemented |
-| Automatic alternative-resource suggestion | ✅ Implemented |
-| "Book anyway" override (clash stays visible on the board) | ✅ Implemented |
-| Weekly schedule board, colour-coded, filterable by resource type | ✅ Implemented |
-| Add a brand-new resource on the fly from the booking form | ✅ Implemented |
-| Conflict feed / activity log | ✅ Implemented |
-| Utilization stats (active bookings, open conflicts, utilization %) | ✅ Implemented |
-| Booking-pressure panel (rule-based utilization heuristic per resource type) | ✅ Implemented — **heuristic, not ML** |
-| Export / print the current board | ✅ Implemented |
-| Data persistence | ✅ Browser `localStorage` (see note below) |
-| Multi-user / real backend / database | 🔜 Future scope |
-| Trained ML demand-forecasting model | 🔜 Future scope (see §7) |
-| SMS / email alerts to drivers & guides | 🔜 Future scope |
-| Native mobile app (APK) | 🔜 Future scope — this prototype ships as a responsive web app |
+| Resource Schedule Board (Grid & Timeline views) | ✅ Implemented |
+| Search & Resource Type Filter | ✅ Implemented |
+| Previous / Next Week Navigation | ✅ Implemented |
+| Booking Creation & Form Controls | ✅ Implemented |
+| Strict Date Validation & Past Date Prevention | ✅ Implemented |
+| Real-time Conflict & Double-Booking Detection | ✅ Implemented |
+| Booking Status Lifecycle (`CONFIRMED`, `CONFLICT`, `RESOLVED`, `CANCELLED`) | ✅ Implemented |
+| Rule-Based Conflict Severity Assessment (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`) | ✅ Implemented |
+| Operational Risk & Impact Analysis Breakdown | ✅ Implemented |
+| Available Alternative Resource Suggestions | ✅ Implemented |
+| One-Click Automated Conflict Resolution | ✅ Implemented |
+| Dynamic "Today's Operational Summary" Metrics | ✅ Implemented |
+| Dashboard Statistics & Booking Pressure Forecasting (Rule-Based Heuristic) | ✅ Implemented |
+| Activity / Conflict Feed with Resolution Logging | ✅ Implemented |
+| Add New Resource Functionality with Duplicate Validation | ✅ Implemented |
+| "How This Solves The Problem" Before vs. After Impact Section | ✅ Implemented |
+| 8-Step Interactive Automated Watch Demo Tour | ✅ Implemented |
+| Browser LocalStorage State Persistence & Demo Reset | ✅ Implemented |
+| Export / Print Schedule Board | ✅ Implemented |
+| Global Keyboard Shortcuts (`N`, `/`, `T`, `R`, `D`, `Ctrl+Z`, `Ctrl+P`, `Esc`) | ✅ Implemented |
+| Automated Unit Test Suite (`node tests.js`) | ✅ Implemented |
+| Multi-user WebSocket / Real Backend / Database | 🔜 Future scope |
+| Real Machine Learning Demand Forecasting Model | 🔜 Future scope (clearly identified as rule-based heuristic) |
+| SMS / Email Alerts to Drivers & Guides | 🔜 Future scope |
 
-We're calling this out explicitly, per the hackathon's own rule that a team must not
-claim a feature is completed if it isn't implemented or demonstrated: **the "Booking
-Pressure" panel is a transparent, rule-based utilization percentage, not a trained
-machine-learning model.** The pitch deck lists a real ML forecasting layer as
-optional/future work, and that's exactly how it's presented here.
+## 5. Technology Stack
 
-## 5. Prototype scope (why it's built this way)
+- **HTML5**: Semantic UI layout and accessible modal dialogs
+- **CSS3**: Custom Dark Theme design system (Space Grotesk, IBM Plex Mono, Inter fonts)
+- **Vanilla JavaScript (ES6+)**: Modular client-side controller & pure math conflict engine
+- **LocalStorage**: Browser state persistence
+- **Node.js**: Zero-dependency automated unit test runner (`tests.js`)
 
-This is a hackathon prototype, not a production system, by design:
-
-- **Client-side only, in-memory + `localStorage` state.** There is no backend or
-  database. This keeps the demo self-contained, deployable as a static site (GitHub
-  Pages), and removes hosting risk before judging. A production version would move
-  `state` in `app.js` behind a real API + database (see §7).
-- **Seed/demo data** recreates the exact double-booking scenario from the pitch deck
-  (Driver Ramesh and Vehicle MH-04-1121 both double-booked on the same day, with
-  Driver Suresh free as the alternative) so judges can see a live conflict on load —
-  see `data.js`. Dates are generated relative to *today* so the board always looks
-  live, regardless of when it's demoed.
-- **Single agency, single browser session.** Multi-branch / multi-user sync is future
-  scope, not simulated here.
-
-## 6. Tech stack
-
-| Layer | Technology | Why |
-|---|---|---|
-| UI | HTML5 + CSS3 (no framework) | Zero build step, deploys as a static site, loads instantly for judges |
-| Logic | Vanilla JavaScript (ES6+) | Conflict-detection is plain date-range comparison — no framework overhead needed |
-| Persistence | Browser `localStorage` | Lightweight, no server required for the prototype stage |
-| Fonts | Space Grotesk / IBM Plex Mono / Inter (Google Fonts) | Dispatch-board look and legible tabular data |
-| Hosting | GitHub Pages | Free, matches the "public repo + working website link" submission requirement |
-
-No external runtime dependencies — open `index.html` and it runs.
-
-## 7. Future scope
-
-- Real backend (Node/Express + Postgres) so multiple staff can see the same live board.
-- Trained ML forecasting model for genuine demand prediction (the current panel is a
-  rule-based stand-in, clearly labelled as such).
-- SMS/email/WhatsApp alerts to drivers, guides, and hotel partners on clash or reassignment.
-- Native Android/iOS apps.
-- Calendar (Google Calendar / Outlook) two-way sync per driver/guide.
-- Role-based access for multi-branch agencies.
-
-## 8. Running it locally
-
-No install, no build step.
-
-```bash
-git clone https://github.com/Dev8735/Resource-Clash-Double-Booking-Detector.git
-cd Resource-Clash-Double-Booking-Detector
-```
-
-Then just open `index.html` in a browser, **or** serve it locally (recommended, so
-`localStorage` and relative paths behave the same as on GitHub Pages):
-
-```bash
-# Python 3
-python3 -m http.server 8000
-# then visit http://localhost:8000
-```
-
-```bash
-# or with Node
-npx serve .
-```
-
-### Deploying the live website link (GitHub Pages)
-
-1. Push this repo to GitHub (public).
-2. Go to **Settings → Pages**.
-3. Under **Build and deployment**, set **Source: Deploy from a branch**, branch
-   `main`, folder `/ (root)`.
-4. Save. GitHub publishes at
-   `https://dev8735.github.io/Resource-Clash-Double-Booking-Detector/` within a
-   minute or two.
-5. Put that URL in the final submission's website-link field.
-
-## 9. Using the demo
-
-1. The board loads with two live clashes already on it (Driver Ramesh, Vehicle
-   MH-04-1121) so the core feature is visible with zero clicks.
-2. Try booking **Driver Suresh** or any other resource for dates that don't clash —
-   it confirms instantly.
-3. Try booking **Driver Ramesh** again for an overlapping date — the conflict modal
-   opens, shows exactly what it collides with, and suggests a free driver.
-4. Click **Switch resource** to accept the suggestion, **Book anyway** to force the
-   double-booking (it'll show red on the board), or **Cancel**.
-5. Use **Reset demo data** to put the board back to its seeded state at any time.
-
-## 10. Project structure
+## 6. Project Structure
 
 ```
 .
-├── index.html      # page shell / layout
-├── style.css       # design system + board styling
-├── app.js          # state, conflict-detection logic, rendering, form handling
-├── data.js         # resource catalog + seed bookings + localStorage helpers
-├── README.md
-└── LICENSE
+├── index.html          # Main HTML structure & dashboard layout
+├── style.css           # Dark theme design system & component styles
+├── app.js              # UI controller, event handling, rendering & demo tour
+├── data.js             # Resource catalog, seed bookings & LocalStorage state
+├── conflict-engine.js  # Pure math date-overlap logic & rule-based severity engine
+├── date-validation.js  # Date validation guard & past date prevention
+├── tests.js            # Automated unit test runner
+├── README.md           # Project documentation
+└── LICENSE             # Open-source license
 ```
 
-## 11. Problem → Solution → Impact
+## 7. How to Run Locally
 
-**Problem:** manual, spreadsheet-based scheduling misses resource clashes until the
-day of the trip.
-**Solution:** automatic overlap detection on every booking, with an instant
-alternative-resource suggestion.
-**Impact:** fewer last-minute cancellations, less emergency scrambling for
-replacement drivers/vehicles/rooms, and more reliable scheduling for partners and
-travelers alike.
+No external build tools or `npm install` required.
 
----
+```bash
+# Clone the repository
+git clone https://github.com/Dev8735/Resource-Clash-Double-Booking-Detector.git
+cd Resource-Clash-Double-Booking-Detector
 
-*No passwords, credentials, or API keys are used anywhere in this project — all data
-is simulated demo data, per the hackathon's GitHub submission rules.*
+# Serve locally with Python (recommended)
+py -m http.server 8000
+
+# Or with Python 3
+python3 -m http.server 8000
+```
+
+Open your browser and visit:
+`http://localhost:8000`
+
+### Running Automated Tests
+
+Run the unit test suite with Node.js:
+
+```bash
+node tests.js
+```
+
+## 8. Live Demo Deployment
+
+To deploy on GitHub Pages:
+1. Push this repository to GitHub.
+2. Go to **Settings → Pages**.
+3. Under **Build and deployment**, set **Branch: main**, folder `/ (root)`.
+4. Save. The live site will be active at:
+   `https://dev8735.github.io/Resource-Clash-Double-Booking-Detector/`

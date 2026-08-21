@@ -81,12 +81,84 @@
     return Object.values(map).filter((c) => c > 1).length;
   }
 
+  /**
+   * Rule-based conflict risk and severity assessment.
+   * Evaluates operational impact, affected dependencies, and recommended actions.
+   */
+  function assessConflictSeverity(pendingBooking, overlaps, allBookings, allResources) {
+    if (!overlaps || overlaps.length === 0) {
+      return {
+        level: "NONE",
+        label: "NONE",
+        color: "var(--accent)",
+        reason: "No scheduling conflict detected.",
+        impacts: ["Resource is fully available for selected dates."],
+        recommendedAction: "Proceed with booking confirmation."
+      };
+    }
+
+    const res = allResources ? allResources.find((r) => r.id === pendingBooking.resourceId) : null;
+    const resName = res ? res.name : "Resource";
+    const resType = res ? res.type : "Resource";
+
+    // Check if there are other conflicts occurring for the SAME trip across other resources
+    const sameTripOtherConflicts = (allBookings || []).filter(
+      (b) => b.tripName === pendingBooking.tripName && b.resourceId !== pendingBooking.resourceId
+    ).some((b) => findOverlaps(allBookings, b.resourceId, b.startDate, b.endDate, b.id).length > 0);
+
+    const isDriverOrVehicle = resType === "Driver" || resType === "Vehicle";
+
+    let level = "MEDIUM";
+    const impacts = [];
+
+    impacts.push(`1 ${resType.toLowerCase()} unavailable (${resName})`);
+    impacts.push(`${overlaps.length + 1} overlapping bookings affected`);
+
+    let reason = `${resName} is already assigned to another booking during the selected date range.`;
+
+    if (sameTripOtherConflicts) {
+      level = "CRITICAL";
+      impacts.push("Multiple operational dependencies affected");
+      impacts.push("High risk of immediate trip cancellation/delay");
+      reason = `Critical clash: Multiple operational dependencies conflicting for "${pendingBooking.tripName}".`;
+    } else if (isDriverOrVehicle && overlaps.length > 1) {
+      level = "CRITICAL";
+      impacts.push("Primary transport resource has multiple clashes");
+      impacts.push("Severe schedule disruption across itineraries");
+      reason = `${resName} (${resType}) has multiple overlapping assignments.`;
+    } else if (overlaps.length > 1) {
+      level = "HIGH";
+      impacts.push("Resource requested for multiple concurrent trips");
+      reason = `${resName} has multiple overlapping bookings on selected dates.`;
+    } else if (overlaps.length === 1) {
+      level = "MEDIUM";
+      impacts.push("Schedule overlap between 2 bookings");
+    }
+
+    const colorMap = {
+      LOW: "#ffb74d",
+      MEDIUM: "#ff9800",
+      HIGH: "#ff5722",
+      CRITICAL: "#ff1744"
+    };
+
+    return {
+      level,
+      label: level,
+      color: colorMap[level] || "#ff5722",
+      reason,
+      impacts,
+      recommendedAction: `Switch to an available alternative ${resType.toLowerCase()} to prevent trip disruption.`
+    };
+  }
+
   const ConflictEngine = {
     rangesOverlap,
     findOverlaps,
     findAvailableAlternatives,
     computeConflictMap,
     countOpenConflicts,
+    assessConflictSeverity,
   };
 
   /* UMD-style export: Node (tests.js) gets module.exports, browser gets window.ConflictEngine */

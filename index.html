@@ -71,6 +71,10 @@
         <div class="stat-label">Conflicts</div>
       </div>
       <div class="stat-box">
+        <div id="stat-resolved" class="stat-value tone-resolved">0</div>
+        <div class="stat-label">Resolved</div>
+      </div>
+      <div class="stat-box">
         <div id="stat-resources" class="stat-value tone-neutral">0</div>
         <div class="stat-label">Total Resources</div>
       </div>
@@ -78,6 +82,11 @@
         <div id="stat-utilization" class="stat-value tone-ok">0%</div>
         <div class="stat-label">Utilization</div>
       </div>
+    </div>
+
+    <div class="card" id="operational-summary-card">
+      <h2 class="panel-title">Today's Operational Summary</h2>
+      <div id="operational-summary" class="operational-summary-grid"></div>
     </div>
 
     <div class="card">
@@ -121,6 +130,33 @@
       </form>
     </div>
 
+    <div class="card impact-card">
+      <h2 class="panel-title">How This Solves The Problem</h2>
+      <div class="impact-comparison">
+        <div class="impact-column without">
+          <div class="impact-header">WITHOUT CLASH DETECTOR</div>
+          <ul>
+            <li>Manual schedule checking</li>
+            <li>Double bookings discovered late</li>
+            <li>Staff manually search for replacements</li>
+            <li>Higher risk of trip disruption</li>
+            <li>Poor visibility of resource availability</li>
+          </ul>
+        </div>
+        <div class="impact-column with">
+          <div class="impact-header">WITH CLASH DETECTOR</div>
+          <ul>
+            <li>Automatic overlap detection</li>
+            <li>Conflict identified immediately</li>
+            <li>Available alternative suggested</li>
+            <li>One-click resource reassignment</li>
+            <li>Better operational visibility</li>
+            <li>Reduced risk of last-minute disruption</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
     <div class="card">
       <h2 class="panel-title">Booking Pressure</h2>
       <p class="panel-note">Rule-based heuristic, not machine learning — flags days where resource demand is high.</p>
@@ -149,12 +185,16 @@
 </main>
 
 <div id="conflict-modal" class="modal-overlay hidden">
-  <div class="modal">
-    <h2>Conflict Detected</h2>
+  <div class="modal conflict-modal-wide">
+    <div class="modal-header">
+      <h2>Resource Conflict Detected</h2>
+      <span id="conflict-severity-badge" class="severity-badge">HIGH</span>
+    </div>
     <div id="conflict-modal-body"></div>
     <div class="modal-actions">
-      <button type="button" id="conflict-switch-btn" class="primary-btn">Switch Resource</button>
-      <button type="button" id="conflict-proceed-btn" class="secondary-btn">Book Anyway</button>
+      <button type="button" id="conflict-switch-btn" class="primary-btn">&#9889; Switch Automatically</button>
+      <button type="button" id="conflict-view-schedule-btn" class="secondary-btn">View Schedule</button>
+      <button type="button" id="conflict-proceed-btn" class="secondary-btn ghost-style">Book Anyway (Mark Conflict)</button>
       <button type="button" id="conflict-cancel-btn" class="ghost-btn">Cancel</button>
     </div>
   </div>

@@ -1,12 +1,11 @@
 /**
- * Past-date booking guard.
+ * date-validation.js
+ * Past-date booking guard and date range validator.
  *
- * Added as a separate, additive script so it works regardless of how the
- * existing booking-submit logic in app.js is structured internally — it
- * intercepts the form submission in the CAPTURE phase, before app.js's own
- * listener runs, and blocks it if the start date is before today.
- *
- * Load this AFTER app.js in index.html.
+ * Intercepts booking form submissions in the CAPTURE phase to ensure:
+ * - Start date and end date are not in the past.
+ * - End date is not before start date.
+ * - Displays exact required error messaging.
  */
 (function () {
   function todayIsoDate() {
@@ -21,12 +20,10 @@
     const feedback = document.getElementById('form-feedback');
     if (feedback) {
       feedback.textContent = message;
-      feedback.classList.add('form-feedback-error');
-      feedback.style.color = '#ff5c5c'; // fallback inline color in case the class isn't styled
+      feedback.className = 'form-feedback form-feedback-error';
+      feedback.style.color = '#ff4d4d';
     }
 
-    // Also use the existing toast system if present, for consistency with
-    // how other messages in the app are shown.
     const toastContainer = document.getElementById('toast-container');
     if (toastContainer) {
       const toast = document.createElement('div');
@@ -37,41 +34,59 @@
     }
   }
 
+  function validateDates(startValue, endValue) {
+    const today = todayIsoDate();
+    if (!startValue || startValue < today) {
+      return "Enter a valid date. Bookings cannot be made for past dates.";
+    }
+    if (!endValue || endValue < today) {
+      return "Enter a valid date. Bookings cannot be made for past dates.";
+    }
+    if (endValue < startValue) {
+      return "Check the dates — the end date can't be before the start date.";
+    }
+    return null;
+  }
+
   function init() {
     const startInput = document.getElementById('form-start');
     const endInput = document.getElementById('form-end');
     const form = document.getElementById('booking-form');
 
-    if (!startInput || !form) return; // safety guard, do nothing if markup changes
+    if (!startInput || !form) return;
 
     const today = todayIsoDate();
 
-    // Visual prevention: browser date-picker won't offer past dates at all.
+    // Visual prevention in browser datepicker
     startInput.min = today;
     if (endInput) endInput.min = today;
 
-    // Keep the end-date minimum in sync as the user changes the start date.
     startInput.addEventListener('change', () => {
       if (endInput) {
         endInput.min = startInput.value && startInput.value > today ? startInput.value : today;
       }
     });
 
-    // Hard guard: block submission if a past date somehow gets through
-    // (manual typing, browser quirks, etc.), BEFORE app.js's own submit
-    // handler runs.
+    // Hard guard: capture phase submit event listener
     form.addEventListener(
       'submit',
       (event) => {
         const startValue = startInput.value;
-        if (!startValue || startValue < todayIsoDate()) {
+        const endValue = endInput ? endInput.value : '';
+        const error = validateDates(startValue, endValue);
+        if (error) {
           event.preventDefault();
           event.stopImmediatePropagation();
-          showFeedback('Enter a valid start date — bookings cannot start in the past.');
+          showFeedback(error);
         }
       },
-      true // capture phase: runs before app.js's listener
+      true // capture phase
     );
+  }
+
+  // Export validateDates helper globally for app.js and tests.js if needed
+  if (typeof window !== 'undefined') {
+    window.DateValidation = { todayIsoDate, validateDates };
   }
 
   if (document.readyState === 'loading') {

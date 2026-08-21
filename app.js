@@ -28,8 +28,10 @@ function cacheEls() {
   els.boardRangeLabel = document.getElementById("week-label");
   els.statBookings = document.getElementById("stat-bookings");
   els.statConflicts = document.getElementById("stat-conflicts");
+  els.statResolved = document.getElementById("stat-resolved");
   els.statResources = document.getElementById("stat-resources");
   els.statUtilization = document.getElementById("stat-utilization");
+  els.operationalSummary = document.getElementById("operational-summary");
   els.alertFeed = document.getElementById("conflict-feed");
   els.forecastList = document.getElementById("pressure-panel");
   els.bookingForm = document.getElementById("booking-form");
@@ -44,8 +46,10 @@ function cacheEls() {
   els.formFeedback = document.getElementById("form-feedback");
   els.conflictModal = document.getElementById("conflict-modal");
   els.conflictModalBody = document.getElementById("conflict-modal-body");
+  els.conflictSeverityBadge = document.getElementById("conflict-severity-badge");
   els.conflictProceedBtn = document.getElementById("conflict-proceed-btn");
   els.conflictSwitchBtn = document.getElementById("conflict-switch-btn");
+  els.conflictViewScheduleBtn = document.getElementById("conflict-view-schedule-btn");
   els.conflictCancelBtn = document.getElementById("conflict-cancel-btn");
   els.inspectModal = document.getElementById("inspect-modal");
   els.inspectModalBody = document.getElementById("inspect-modal-body");
@@ -111,29 +115,44 @@ function bindEvents() {
   // Modal Actions
   els.conflictCancelBtn.addEventListener("click", closeConflictModal);
   els.inspectCloseBtn.addEventListener("click", closeInspectModal);
+  if (els.conflictViewScheduleBtn) {
+    els.conflictViewScheduleBtn.addEventListener("click", () => {
+      closeConflictModal();
+      if (els.board) els.board.scrollIntoView({ behavior: "smooth" });
+    });
+  }
   
   els.conflictProceedBtn.addEventListener("click", () => {
     if (!pendingConflict) return;
-    commitBooking(pendingConflict.pendingBooking);
-    showFormError("Booked anyway — this resource now shows a Conflict! on the board.");
+    const booking = { ...pendingConflict.pendingBooking, status: "CONFLICT" };
+    commitBooking(booking);
+    showFormError("Booked anyway — marked with status CONFLICT.");
+    showToast("Booked anyway — status marked as CONFLICT.", "error");
     closeConflictModal();
   });
 
   els.conflictSwitchBtn.addEventListener("click", () => {
     if (!pendingConflict || pendingConflict.alternatives.length === 0) return;
     const alt = pendingConflict.alternatives[0];
-    const booking = { ...pendingConflict.pendingBooking, id: `bk-${Date.now()}`, resourceId: alt.id };
+    const oldResName = pendingConflict.resource ? pendingConflict.resource.name : "requested resource";
+    const booking = {
+      ...pendingConflict.pendingBooking,
+      id: `bk-${Date.now()}`,
+      resourceId: alt.id,
+      status: "RESOLVED"
+    };
     commitBooking(booking);
     
     // Add dynamic resolution alert
     const timeStr = new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
     state.alerts.push({
       time: timeStr,
-      text: `Resolved: Avoided clash for "${booking.tripName}" by booking on alternative resource ${alt.name}.`
+      text: `Conflict resolved: Driver/Resource changed from ${oldResName} to ${alt.name} for "${booking.tripName}". Status set to RESOLVED.`
     });
     saveState(state);
     
-    showFormSuccess(`Booked with ${alt.name} instead — no clash.`);
+    showFormSuccess(`✓ Conflict resolved: ${alt.name} assigned.`);
+    showToast(`Conflict resolved successfully. Alternative resource assigned (${alt.name}).`, "success");
     closeConflictModal();
   });
 
@@ -197,6 +216,7 @@ function computeConflictMap() {
 function renderAll() {
   renderBoard();
   renderStats();
+  renderOperationalSummary();
   renderAlerts();
   renderForecast();
   renderBookings();
@@ -287,13 +307,19 @@ function renderGridView(resources, dates, conflictMap) {
         cellClass = "status-conflict";
         label = "Conflict!";
       } else if (count === 1) {
-        cellClass = "status-booked";
-        label = "Booked";
+        const isResolvedCell = bookingsForCell.some(b => b.status === "RESOLVED");
+        if (isResolvedCell) {
+          cellClass = "status-resolved";
+          label = "✓ Resolved";
+        } else {
+          cellClass = "status-booked";
+          label = "Booked";
+        }
       }
       td.className = `board-cell ${cellClass}`;
       td.innerHTML = `<span class="cell-label">${label}</span>`;
       if (bookingsForCell.length) {
-        const tripNames = bookingsForCell.map((b) => `${b.tripName} (${b.customer})`).join(" + ");
+        const tripNames = bookingsForCell.map((b) => `${b.tripName} (${b.customer}) [${b.status || 'CONFIRMED'}]`).join(" + ");
         td.title = tripNames;
       }
       if (count > 1) {
@@ -398,13 +424,13 @@ function renderTimelineView(resources, dates) {
         bar.className = "timeline-bar";
         
         // Find if this booking has a conflict
-        const hasConflict = findOverlaps(b.resourceId, b.startDate, b.endDate, b.id).length > 0;
+        const hasConflict = b.status === "CONFLICT" || findOverlaps(b.resourceId, b.startDate, b.endDate, b.id).length > 0;
+        const isResolved = b.status === "RESOLVED" && !hasConflict;
 
         if (hasConflict) {
           bar.classList.add("conflict");
           bar.style.cursor = "pointer";
           bar.addEventListener("click", () => {
-            // Find first date of clash
             let curr = new Date(b.startDate + "T00:00:00");
             const final = new Date(b.endDate + "T00:00:00");
             let inspectDate = b.startDate;
@@ -421,12 +447,15 @@ function renderTimelineView(resources, dates) {
             }
             openInspectModal(resource.id, inspectDate);
           });
+        } else if (isResolved) {
+          bar.style.background = "linear-gradient(135deg, rgba(0, 230, 118, 0.4), rgba(0, 212, 255, 0.4))";
+          bar.style.borderColor = "var(--guide)";
         }
 
         bar.style.left = `${leftPercent}%`;
         bar.style.width = `${widthPercent}%`;
-        bar.textContent = `${b.tripName} (${b.customer})`;
-        bar.title = `${b.tripName} (${b.customer}) &middot; ${b.startDate} to ${b.endDate}`;
+        bar.textContent = isResolved ? `✓ ${b.tripName}` : `${b.tripName} (${b.customer})`;
+        bar.title = `${b.tripName} (${b.customer}) &middot; ${b.startDate} to ${b.endDate} [${b.status || 'CONFIRMED'}]`;
         trackDiv.appendChild(bar);
       }
     }
@@ -441,10 +470,13 @@ function renderTimelineView(resources, dates) {
 function renderStats() {
   const dates = boardDates();
   const conflictMap = computeConflictMap();
-  const openConflicts = Object.values(conflictMap).filter((c) => c > 1).length;
+  
+  const openConflicts = state.bookings.filter(b => b.status === "CONFLICT" || findOverlaps(b.resourceId, b.startDate, b.endDate, b.id).length > 0).length;
+  const resolvedCount = state.bookings.filter(b => b.status === "RESOLVED").length;
 
   els.statBookings.textContent = state.bookings.length;
   els.statConflicts.textContent = openConflicts;
+  if (els.statResolved) els.statResolved.textContent = resolvedCount;
   els.statResources.textContent = state.resources.length;
 
   const totalSlots = state.resources.length * dates.length;
@@ -463,6 +495,67 @@ function renderStats() {
   els.statConflicts.parentElement.classList.toggle("stat-card--alert", openConflicts > 0);
 }
 
+function renderOperationalSummary() {
+  if (!els.operationalSummary) return;
+
+  const today = dayOffset(0);
+  const availableTodayCount = state.resources.filter(r => {
+    const overlapping = state.bookings.filter(b => b.resourceId === r.id && b.startDate <= today && today <= b.endDate);
+    return overlapping.length === 0;
+  }).length;
+
+  const confirmedCount = state.bookings.filter(b => b.status === "CONFIRMED").length;
+  const openConflictsCount = state.bookings.filter(b => b.status === "CONFLICT" || findOverlaps(b.resourceId, b.startDate, b.endDate, b.id).length > 0).length;
+  const resolvedCount = state.bookings.filter(b => b.status === "RESOLVED").length;
+
+  let criticalCount = 0;
+  for (const b of state.bookings) {
+    const overlaps = findOverlaps(b.resourceId, b.startDate, b.endDate, b.id);
+    if (overlaps.length > 0) {
+      const sev = ConflictEngine.assessConflictSeverity(b, overlaps, state.bookings, state.resources);
+      if (sev.level === "CRITICAL") criticalCount++;
+    }
+  }
+
+  els.operationalSummary.innerHTML = `
+    <div class="summary-metric-card">
+      <span class="summary-icon">🟢</span>
+      <div class="summary-details">
+        <span class="summary-val">${availableTodayCount}</span>
+        <span class="summary-lbl">Resources Available</span>
+      </div>
+    </div>
+    <div class="summary-metric-card">
+      <span class="summary-icon">🔵</span>
+      <div class="summary-details">
+        <span class="summary-val">${confirmedCount}</span>
+        <span class="summary-lbl">Confirmed Bookings</span>
+      </div>
+    </div>
+    <div class="summary-metric-card">
+      <span class="summary-icon">🟠</span>
+      <div class="summary-details">
+        <span class="summary-val">${openConflictsCount}</span>
+        <span class="summary-lbl">Conflicts Detected</span>
+      </div>
+    </div>
+    <div class="summary-metric-card">
+      <span class="summary-icon">✓</span>
+      <div class="summary-details">
+        <span class="summary-val">${resolvedCount}</span>
+        <span class="summary-lbl">Conflict Resolved</span>
+      </div>
+    </div>
+    <div class="summary-metric-card" style="grid-column: span 2;">
+      <span class="summary-icon">🔴</span>
+      <div class="summary-details">
+        <span class="summary-val">${criticalCount}</span>
+        <span class="summary-lbl">Critical Issues</span>
+      </div>
+    </div>
+  `;
+}
+
 function renderAlerts() {
   els.alertFeed.innerHTML = "";
   if (state.alerts.length === 0) {
@@ -475,7 +568,7 @@ function renderAlerts() {
   for (const alert of state.alerts.slice().reverse()) {
     const div = document.createElement("div");
     div.className = "feed-item";
-    if (alert.text.startsWith("Resolved")) {
+    if (alert.text.startsWith("Resolved") || alert.text.startsWith("Conflict resolved")) {
       div.style.background = "rgba(0, 230, 118, 0.08)";
       div.style.borderColor = "rgba(0, 230, 118, 0.3)";
     }
@@ -585,23 +678,26 @@ function renderBookings() {
     const rType = resource ? resource.type : "Unknown";
 
     const hasConflict = findOverlaps(b.resourceId, b.startDate, b.endDate, b.id).length > 0;
+    const status = b.status || (hasConflict ? "CONFLICT" : "CONFIRMED");
+    let statusClass = "confirmed";
+    if (status === "CONFLICT" || hasConflict) statusClass = "conflict";
+    else if (status === "RESOLVED") statusClass = "resolved";
+    else if (status === "CANCELLED") statusClass = "cancelled";
 
     const div = document.createElement("div");
     div.className = "booking-row";
     div.style.marginBottom = "6px";
     
-    const badge = hasConflict
-      ? `<span class="status-pill conflict" style="margin-left:6px;">Conflict</span>`
-      : `<span class="status-pill booked" style="margin-left:6px;">Booked</span>`;
+    const badge = `<span class="status-pill ${statusClass}" style="margin-left:6px;">${status}</span>`;
 
     div.innerHTML = `
       <div class="booking-info">
-        <div style="font-weight:600; font-size:13px; color:var(--text);">${b.tripName}</div>
+        <div style="font-weight:600; font-size:13px; color:var(--text);">${b.tripName} ${badge}</div>
         <div style="font-size:11.5px; color:var(--text-dim); margin-top:2px;">
           ${b.customer} &middot; <span class="type-badge ${rType.toLowerCase()}">${rType}</span> <strong>${rName}</strong>
         </div>
         <div style="font-size:11px; color:var(--accent); margin-top:2px;">
-          ${b.startDate} to ${b.endDate} ${badge}
+          ${b.startDate} to ${b.endDate}
         </div>
       </div>
       <div>
@@ -682,16 +778,12 @@ function onSubmitBooking(e) {
 
   // Validate dates
   const today = dayOffset(0);
-  if (!start) {
-    showFormError("Start date is required.");
+  if (!start || start < today) {
+    showFormError("Enter a valid date. Bookings cannot be made for past dates.");
     return;
   }
-  if (!end) {
-    showFormError("End date is required.");
-    return;
-  }
-  if (start < today) {
-    showFormError("Enter a valid start date — bookings cannot start in the past.");
+  if (!end || end < today) {
+    showFormError("Enter a valid date. Bookings cannot be made for past dates.");
     return;
   }
   if (start > end) {
@@ -729,10 +821,12 @@ function onSubmitBooking(e) {
     customer,
     startDate: start,
     endDate: end,
+    status: "CONFIRMED"
   };
 
   const overlaps = findOverlaps(resourceId, start, end);
   if (overlaps.length > 0) {
+    pendingBooking.status = "CONFLICT";
     openConflictModal(pendingBooking, overlaps, type);
     return;
   }
@@ -799,6 +893,7 @@ function cancelBooking(bookingId) {
   
   if (!confirm(`Cancel booking "${booking.tripName}" for ${booking.customer}?`)) return;
   
+  booking.status = "CANCELLED";
   lastCanceledBooking = { ...booking, index: idx };
   state.bookings.splice(idx, 1);
   saveState(state);
@@ -837,29 +932,63 @@ let pendingConflict = null;
 
 function openConflictModal(pendingBooking, overlaps, type) {
   const resource = state.resources.find((r) => r.id === pendingBooking.resourceId);
-  // Match alternative resource of the SAME type
   const catCasing = type.charAt(0).toUpperCase() + type.slice(1);
   const alternatives = findAvailableAlternatives(catCasing, pendingBooking.startDate, pendingBooking.endDate, pendingBooking.resourceId);
 
   pendingConflict = { pendingBooking, alternatives, resource };
 
-  const overlapLines = overlaps
-    .map((b) => `<li><strong>${b.tripName}</strong> (${b.customer}) &middot; ${b.startDate} to ${b.endDate}</li>`)
-    .join("");
+  // Calculate severity
+  const severity = ConflictEngine.assessConflictSeverity(pendingBooking, overlaps, state.bookings, state.resources);
+
+  if (els.conflictSeverityBadge) {
+    els.conflictSeverityBadge.textContent = severity.label;
+    els.conflictSeverityBadge.className = `severity-badge severity-${severity.level.toLowerCase()}`;
+  }
+
+  const existingBooking = overlaps[0];
+
+  const impactItems = severity.impacts.map(i => `<li>${i}</li>`).join("");
 
   els.conflictModalBody.innerHTML = `
-    <p class="conflict-summary">
-      <strong>${resource.name}</strong> (${type}) is already booked for dates that overlap
-      <strong>${pendingBooking.startDate} to ${pendingBooking.endDate}</strong>:
-    </p>
-    <ul class="conflict-overlap-list" style="margin: 10px 0; padding-left: 20px; font-size: 13px; color: var(--text);">${overlapLines}</ul>
+    <div style="background: rgba(255,59,92,0.06); border: 1px solid rgba(255,59,92,0.2); border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+      <div style="font-weight: 700; font-size: 13.5px; color: var(--conflict); margin-bottom: 4px;">
+        Requested Resource: ${resource ? resource.name : "Resource"} (${catCasing})
+      </div>
+      <div style="font-size: 12.5px; color: var(--text);">
+        <strong>Reason:</strong> ${severity.reason}
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+      <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 6px; padding: 10px;">
+        <div style="font-weight: bold; font-size: 11px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px;">New Booking Request</div>
+        <div style="font-weight: 600; font-size: 13px;">${pendingBooking.tripName}</div>
+        <div style="font-size: 11.5px; color: var(--text-dim);">${pendingBooking.customer}</div>
+        <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">${pendingBooking.startDate} → ${pendingBooking.endDate}</div>
+      </div>
+      <div style="background: rgba(255,59,92,0.04); border: 1px solid rgba(255,59,92,0.2); border-radius: 6px; padding: 10px;">
+        <div style="font-weight: bold; font-size: 11px; text-transform: uppercase; color: var(--conflict); margin-bottom: 4px;">Conflicting Existing Booking</div>
+        <div style="font-weight: 600; font-size: 13px;">${existingBooking ? existingBooking.tripName : "Existing Trip"}</div>
+        <div style="font-size: 11.5px; color: var(--text-dim);">${existingBooking ? existingBooking.customer : ""}</div>
+        <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">${existingBooking ? existingBooking.startDate + " → " + existingBooking.endDate : ""}</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 14px;">
+      <div style="font-weight: bold; font-size: 11px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px;">Operational Impact & Severity</div>
+      <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: var(--text); line-height: 1.5;">${impactItems}</ul>
+    </div>
+
     ${
       alternatives.length
-        ? `<div style="margin-top:14px; padding:10px; border:1px solid rgba(0,230,118,0.2); background:rgba(0,230,118,0.05); border-radius:6px;">
-             <span style="color:var(--guide); font-weight:bold; font-size:12.5px;">✓ Suggested alternative resource:</span>
-             <p style="margin: 4px 0 0 0; font-size: 13px; font-weight: 600; color:var(--text);">${alternatives[0].name}</p>
+        ? `<div style="padding:12px; border:1px solid rgba(0,230,118,0.3); background:rgba(0,230,118,0.06); border-radius:8px;">
+             <div style="color:var(--guide); font-weight:bold; font-size:12.5px; display:flex; align-items:center; gap:6px;">
+               <span>✓ Available Alternative Resource:</span>
+             </div>
+             <div style="margin-top:4px; font-size: 14px; font-weight: 700; color:var(--text);">${alternatives[0].name}</div>
+             <div style="font-size: 11.5px; color:var(--text-dim); margin-top:2px;">Available for the complete selected date range (${pendingBooking.startDate} → ${pendingBooking.endDate}).</div>
            </div>`
-        : `<p style="margin-top:14px; font-size:12.5px; color:var(--conflict); font-style:italic;">No other ${type.toLowerCase()} is available for this exact range.</p>`
+        : `<p style="font-size:12.5px; color:var(--conflict); font-style:italic;">No other ${type.toLowerCase()} is available for this exact date range.</p>`
     }
   `;
 
@@ -871,8 +1000,8 @@ function openConflictModal(pendingBooking, overlaps, type) {
   els.conflictModal.classList.remove("hidden");
 
   // Log conflict feed alert
-  const alertText = `Clash: ${resource.name} double-booked ${pendingBooking.startDate}→${pendingBooking.endDate}.` +
-    (alternatives.length ? ` Suggested ${alternatives[0].name} instead.` : " No free alternative found.");
+  const alertText = `Conflict detected: ${resource ? resource.name : "Resource"} double-booked ${pendingBooking.startDate}→${pendingBooking.endDate}. Severity: ${severity.level}.` +
+    (alternatives.length ? ` Suggested ${alternatives[0].name}.` : " No free alternative found.");
   
   const timeStr = new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
   state.alerts.push({ time: timeStr, text: alertText });
@@ -931,6 +1060,7 @@ function openInspectModal(resourceId, date) {
       const oldResId = booking.resourceId;
       const oldRes = state.resources.find((r) => r.id === oldResId);
       booking.resourceId = altId;
+      booking.status = "RESOLVED";
       
       // Dynamic feed resolution logging
       const timeStr = new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
@@ -1055,51 +1185,35 @@ function showToast(message, type = "neutral") {
 function runDemoTour() {
   clearDemoTimeouts();
   
-  // Set default view
   currentView = "grid";
   if (els.viewGridBtn) {
     els.viewGridBtn.classList.add("active");
     els.viewTimelineBtn.classList.remove("active");
   }
   
-  // Reset State to fresh demo seeds
   state = freshState();
   saveState(state);
   boardStartDate = dayOffset(0);
   populateBookingFormOptions();
   renderAll();
 
-  showToast("Demo started: Automatic conflict check & resolution.", "success");
+  showToast("Demo tour started: Step-by-step conflict detection & resolution.", "success");
 
-  // Step 1: Show the Schedule Board
+  // Step 1: Current resource schedule board overview
   let id = setTimeout(() => {
-    const board = document.getElementById("board-container");
-    if (board) {
-      board.style.outline = "2px solid var(--accent)";
-      board.style.boxShadow = "0 0 15px rgba(0, 212, 255, 0.4)";
+    if (els.board) {
+      els.board.style.outline = "2px solid var(--accent)";
+      els.board.style.boxShadow = "0 0 15px rgba(0, 212, 255, 0.4)";
       setTimeout(() => {
-        board.style.outline = "";
-        board.style.boxShadow = "";
+        els.board.style.outline = "";
+        els.board.style.boxShadow = "";
       }, 2000);
     }
-    showToast("Step 1: Board displays resources and current week bookings.", "neutral");
+    showToast("STEP 1: Current resource schedule board loaded.", "neutral");
   }, 1500);
   demoTimeoutIds.push(id);
 
-  // Step 2: Highlight Existing Booking (Ramesh Yadav's Goa trip)
-  id = setTimeout(() => {
-    const rows = document.querySelectorAll(".board-table tr");
-    rows.forEach(r => {
-      if (r.innerHTML.includes("Ramesh Yadav")) {
-        r.style.outline = "2px solid var(--booked)";
-        setTimeout(() => r.style.outline = "", 2500);
-      }
-    });
-    showToast("Step 2: Note Driver Ramesh Yadav has an existing trip (Goa Beach Circuit).", "neutral");
-  }, 4000);
-  demoTimeoutIds.push(id);
-
-  // Step 3: Populate Form fields to generate Overlap
+  // Step 2: Staff creates booking for Driver Ramesh Yadav on an overlapping date
   id = setTimeout(() => {
     els.formType.value = "driver";
     populateResourceOptionsForType("driver");
@@ -1118,18 +1232,24 @@ function runDemoTour() {
         card.style.boxShadow = "";
       }, 2000);
     }
-    showToast("Step 3: Filling new booking for Ramesh Yadav on an overlapping date...", "neutral");
-  }, 7000);
+    showToast("STEP 2: Staff creates booking for Driver Ramesh Yadav on an overlapping date.", "neutral");
+  }, 4500);
   demoTimeoutIds.push(id);
 
-  // Step 4: Submit Form and Trigger Modal
+  // Step 3: Overlapping booking submitted -> conflict detected
   id = setTimeout(() => {
     onSubmitBooking();
-    showToast("Step 4: Overlap detected! Conflict warning modal displayed.", "error");
-  }, 10000);
+    showToast("STEP 3: Requested resource is already assigned — Conflict detected!", "error");
+  }, 7500);
   demoTimeoutIds.push(id);
 
-  // Step 5: Showcase Suggested alternative (Suresh Patil)
+  // Step 4: System evaluates severity & impact
+  id = setTimeout(() => {
+    showToast("STEP 4: System evaluates severity (HIGH) & operational impact.", "neutral");
+  }, 10500);
+  demoTimeoutIds.push(id);
+
+  // Step 5: Showcase suggested alternative (Suresh Patil)
   id = setTimeout(() => {
     const modal = document.querySelector("#conflict-modal .modal");
     if (modal) {
@@ -1140,23 +1260,52 @@ function runDemoTour() {
         modal.style.boxShadow = "";
       }, 2500);
     }
-    showToast("Step 5: System suggests available alternative: Suresh Patil.", "neutral");
-  }, 13000);
+    showToast("STEP 5: Available alternative resource suggested: Suresh Patil.", "neutral");
+  }, 13500);
   demoTimeoutIds.push(id);
 
-  // Step 6: Click Switch Resource
+  // Step 6: One-click switch
   id = setTimeout(() => {
     if (els.conflictSwitchBtn && !els.conflictSwitchBtn.disabled) {
       els.conflictSwitchBtn.click();
+      showToast("STEP 6: Staff clicks 'Switch Automatically'.", "success");
     }
-  }, 16000);
+  }, 16500);
   demoTimeoutIds.push(id);
 
-  // Step 7: Update Dashboard and complete
+  // Steps 7 & 8: Conflict resolved & Dashboard updated
   id = setTimeout(() => {
-    showToast("Step 7: Reassigned to Suresh Patil. Dashboard updated immediately!", "success");
-  }, 18500);
+    showToast("STEPS 7 & 8: Conflict resolved (RESOLVED status). Board & Dashboard updated!", "success");
+  }, 19000);
   demoTimeoutIds.push(id);
+}
+
+function clearDemoTimeouts() {
+  demoTimeoutIds.forEach(id => clearTimeout(id));
+  demoTimeoutIds = [];
+}
+
+/* ---------------------------------------------------------------------- */
+/* Demoreset & Slugify                                                    */
+/* ---------------------------------------------------------------------- */
+
+function onResetDemo() {
+  if (!confirm("Reset the board back to the seeded demo data? This clears anything you've added.")) return;
+  clearDemoTimeouts();
+  state = freshState();
+  saveState(state);
+  boardStartDate = dayOffset(0);
+  
+  // Reset forms
+  populateBookingFormOptions();
+  els.newResourceName.value = "";
+  
+  renderAll();
+  showToast("✓ Demo data reset complete.", "success");
+}
+
+function slugify(str) {
+  return str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
 function clearDemoTimeouts() {

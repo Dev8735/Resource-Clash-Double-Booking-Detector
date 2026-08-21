@@ -54,34 +54,40 @@ function dayOffset(offset) {
 function buildSeedBookings() {
   return [
     // Clash #1: Driver Ramesh double-booked
-    { id: "bk-1", resourceId: "drv-ramesh",    tripName: "Goa Beach Circuit",     customer: "Sharma Family",      startDate: dayOffset(0), endDate: dayOffset(2) },
-    { id: "bk-2", resourceId: "drv-ramesh",    tripName: "Lonavala Weekend",      customer: "Mehta Group",        startDate: dayOffset(1), endDate: dayOffset(1) },
+    { id: "bk-1", resourceId: "drv-ramesh",    tripName: "Goa Beach Circuit",     customer: "Sharma Family",      startDate: dayOffset(0), endDate: dayOffset(2), status: "CONFLICT" },
+    { id: "bk-2", resourceId: "drv-ramesh",    tripName: "Lonavala Weekend",      customer: "Mehta Group",        startDate: dayOffset(1), endDate: dayOffset(1), status: "CONFLICT" },
     // Clash #2: Vehicle MH-04-1121 double-booked
-    { id: "bk-4", resourceId: "veh-mh04-1121", tripName: "Goa Beach Circuit",     customer: "Sharma Family",      startDate: dayOffset(0), endDate: dayOffset(2) },
-    { id: "bk-5", resourceId: "veh-mh04-1121", tripName: "Corporate Offsite",     customer: "Nimbus Tech Pvt Ltd", startDate: dayOffset(1), endDate: dayOffset(1) },
+    { id: "bk-4", resourceId: "veh-mh04-1121", tripName: "Goa Beach Circuit",     customer: "Sharma Family",      startDate: dayOffset(0), endDate: dayOffset(2), status: "CONFLICT" },
+    { id: "bk-5", resourceId: "veh-mh04-1121", tripName: "Corporate Offsite",     customer: "Nimbus Tech Pvt Ltd", startDate: dayOffset(1), endDate: dayOffset(1), status: "CONFLICT" },
     // Normal bookings (no clashes)
-    { id: "bk-3", resourceId: "drv-suresh",    tripName: "Alibaug Getaway",       customer: "Kapoor Family",       startDate: dayOffset(1), endDate: dayOffset(3) },
-    { id: "bk-6", resourceId: "rm-204",        tripName: "Sharma Family Stay",    customer: "Sharma Family",       startDate: dayOffset(0), endDate: dayOffset(3) },
-    { id: "bk-7", resourceId: "gd-priya",      tripName: "Old City Heritage Walk", customer: "Kapoor Family",      startDate: dayOffset(2), endDate: dayOffset(2) },
-    { id: "bk-8", resourceId: "veh-mh04-2280", tripName: "Alibaug Getaway",       customer: "Kapoor Family",       startDate: dayOffset(1), endDate: dayOffset(3) },
-    { id: "bk-9", resourceId: "rm-210",        tripName: "Nimbus Offsite Stay",   customer: "Nimbus Tech Pvt Ltd", startDate: dayOffset(1), endDate: dayOffset(2) },
+    { id: "bk-3", resourceId: "drv-suresh",    tripName: "Alibaug Getaway",       customer: "Kapoor Family",       startDate: dayOffset(1), endDate: dayOffset(3), status: "CONFIRMED" },
+    { id: "bk-6", resourceId: "rm-204",        tripName: "Sharma Family Stay",    customer: "Sharma Family",       startDate: dayOffset(0), endDate: dayOffset(3), status: "CONFIRMED" },
+    { id: "bk-7", resourceId: "gd-priya",      tripName: "Old City Heritage Walk", customer: "Kapoor Family",      startDate: dayOffset(2), endDate: dayOffset(2), status: "CONFIRMED" },
+    { id: "bk-8", resourceId: "veh-mh04-2280", tripName: "Alibaug Getaway",       customer: "Kapoor Family",       startDate: dayOffset(1), endDate: dayOffset(3), status: "CONFIRMED" },
+    { id: "bk-9", resourceId: "rm-210",        tripName: "Nimbus Offsite Stay",   customer: "Nimbus Tech Pvt Ltd", startDate: dayOffset(1), endDate: dayOffset(2), status: "CONFIRMED" },
     // Extra bookings for richer demo
-    { id: "bk-10", resourceId: "drv-anita",    tripName: "Pune Wine Tour",        customer: "D'Souza Couple",      startDate: dayOffset(3), endDate: dayOffset(4) },
-    { id: "bk-11", resourceId: "veh-mh12-7745",tripName: "Pune Wine Tour",        customer: "D'Souza Couple",      startDate: dayOffset(3), endDate: dayOffset(4) },
-    { id: "bk-12", resourceId: "gd-aman",      tripName: "Mumbai Darshan",        customer: "Singh Family",        startDate: dayOffset(0), endDate: dayOffset(0) },
-    { id: "bk-13", resourceId: "rm-305",       tripName: "Singh Staycation",      customer: "Singh Family",        startDate: dayOffset(0), endDate: dayOffset(1) },
-    { id: "bk-14", resourceId: "drv-vikram",   tripName: "Airport Transfer",      customer: "Johnson Party",       startDate: dayOffset(4), endDate: dayOffset(4) },
-    { id: "bk-15", resourceId: "gd-meera",     tripName: "Elephanta Caves Tour",  customer: "Chen Group",          startDate: dayOffset(3), endDate: dayOffset(3) },
+    { id: "bk-10", resourceId: "drv-anita",    tripName: "Pune Wine Tour",        customer: "D'Souza Couple",      startDate: dayOffset(3), endDate: dayOffset(4), status: "CONFIRMED" },
+    { id: "bk-11", resourceId: "veh-mh12-7745",tripName: "Pune Wine Tour",        customer: "D'Souza Couple",      startDate: dayOffset(3), endDate: dayOffset(4), status: "CONFIRMED" },
+    { id: "bk-12", resourceId: "gd-aman",      tripName: "Mumbai Darshan",        customer: "Singh Family",        startDate: dayOffset(0), endDate: dayOffset(0), status: "CONFIRMED" },
+    { id: "bk-13", resourceId: "rm-305",       tripName: "Singh Staycation",      customer: "Singh Family",        startDate: dayOffset(0), endDate: dayOffset(1), status: "CONFIRMED" },
+    { id: "bk-14", resourceId: "drv-vikram",   tripName: "Airport Transfer",      customer: "Johnson Party",       startDate: dayOffset(4), endDate: dayOffset(4), status: "CONFIRMED" },
+    { id: "bk-15", resourceId: "gd-meera",     tripName: "Elephanta Caves Tour",  customer: "Chen Group",          startDate: dayOffset(3), endDate: dayOffset(3), status: "CONFIRMED" },
   ];
 }
 
-const STORAGE_KEY = "rcdd_state_v2";
+const STORAGE_KEY = "rcdd_state_v3";
 
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw);
+    const loaded = JSON.parse(raw);
+    if (loaded && loaded.bookings) {
+      loaded.bookings.forEach((b) => {
+        if (!b.status) b.status = "CONFIRMED";
+      });
+    }
+    return loaded;
   } catch (e) {
     console.error("Failed to load saved state, starting fresh.", e);
     return null;

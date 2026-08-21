@@ -168,6 +168,42 @@ assertEqual(deckMap["veh-mh04-1121|2026-10-13"], 2, "Vehicle MH-04-1121 shows a 
 assertEqual(ConflictEngine.countOpenConflicts(deckBookings), 2, "exactly two open conflicts across the whole board, as demoed");
 
 /* ------------------------------------------------------------------ */
+section("assessConflictSeverity — rule-based conflict risk evaluation");
+/* ------------------------------------------------------------------ */
+
+const testResources = [
+  { id: "drv-ramesh", type: "Driver", name: "Ramesh Yadav" },
+  { id: "drv-suresh", type: "Driver", name: "Suresh Patil" },
+  { id: "veh-1", type: "Vehicle", name: "MH-04-1121" }
+];
+
+const pendingBk = {
+  id: "bk-new",
+  resourceId: "drv-ramesh",
+  tripName: "Lonavala Weekend",
+  customer: "Mehta Group",
+  startDate: "2026-10-13",
+  endDate: "2026-10-13"
+};
+
+const overlapsSingle = [
+  { id: "bk-1", resourceId: "drv-ramesh", tripName: "Goa Beach Circuit", customer: "Sharma Family", startDate: "2026-10-12", endDate: "2026-10-14" }
+];
+
+const sevSingle = ConflictEngine.assessConflictSeverity(pendingBk, overlapsSingle, overlapsSingle, testResources);
+assertEqual(sevSingle.level, "MEDIUM", "Single overlap assesses as MEDIUM severity");
+
+const overlapsMultiple = [
+  { id: "bk-1", resourceId: "drv-ramesh", tripName: "Goa Beach Circuit", customer: "Sharma Family", startDate: "2026-10-12", endDate: "2026-10-14" },
+  { id: "bk-2", resourceId: "drv-ramesh", tripName: "City Tour", customer: "Verma Family", startDate: "2026-10-13", endDate: "2026-10-13" }
+];
+const sevMultiple = ConflictEngine.assessConflictSeverity(pendingBk, overlapsMultiple, overlapsMultiple, testResources);
+assertEqual(sevMultiple.level, "CRITICAL", "Driver/Vehicle with multiple overlaps assesses as CRITICAL severity");
+
+const sevNone = ConflictEngine.assessConflictSeverity(pendingBk, [], [], testResources);
+assertEqual(sevNone.level, "NONE", "Zero overlaps returns NONE severity");
+
+/* ------------------------------------------------------------------ */
 console.log(`\n${passed} passed, ${failed} failed\n`);
 if (failed > 0) {
   process.exit(1);
