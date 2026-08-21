@@ -45,6 +45,9 @@ function cacheEls() {
   els.conflictProceedBtn = document.getElementById("conflict-proceed-btn");
   els.conflictSwitchBtn = document.getElementById("conflict-switch-btn");
   els.conflictCancelBtn = document.getElementById("conflict-cancel-btn");
+  els.inspectModal = document.getElementById("inspect-modal");
+  els.inspectModalBody = document.getElementById("inspect-modal-body");
+  els.inspectCloseBtn = document.getElementById("inspect-close-btn");
   els.resetBtn = document.getElementById("reset-demo-btn");
   els.printBtn = document.getElementById("print-btn");
   els.prevWeekBtn = document.getElementById("prev-week-btn");
@@ -214,6 +217,18 @@ function renderBoard() {
       if (bookingsForCell.length) {
         const tripNames = bookingsForCell.map((b) => b.tripName).join(" + ");
         td.title = tripNames;
+      }
+      if (count > 1) {
+        td.setAttribute("role", "button");
+        td.setAttribute("tabindex", "0");
+        td.setAttribute("aria-label", `Conflict on ${resource.name}, ${date} — click for details`);
+        td.addEventListener("click", () => openInspectModal(resource.id, date));
+        td.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openInspectModal(resource.id, date);
+          }
+        });
       }
       tr.appendChild(td);
     }
@@ -487,8 +502,72 @@ function closeConflictModal() {
   pendingConflict = null;
 }
 
+/**
+ * Conflict inspector: click any red "Conflict!" cell on the board to see
+ * exactly which bookings collide on that resource/date, why, and — for each
+ * colliding booking — a one-click reassignment to a free alternative of the
+ * same resource type, without needing to submit a new booking first.
+ */
+function openInspectModal(resourceId, date) {
+  const resource = state.resources.find((r) => r.id === resourceId);
+  const collidingBookings = state.bookings.filter(
+    (b) => b.resourceId === resourceId && b.startDate <= date && date <= b.endDate
+  );
+
+  const dateLabel = new Date(date + "T00:00:00").toLocaleDateString(undefined, {
+    weekday: "long", month: "short", day: "numeric", year: "numeric",
+  });
+
+  const rows = collidingBookings
+    .map((b, i) => {
+      const alternatives = findAvailableAlternatives(resource.type, b.startDate, b.endDate, resourceId);
+      const altBtn = alternatives.length
+        ? `<button class="btn btn-primary inspect-reassign-btn" data-booking-id="${b.id}" data-alt-id="${alternatives[0].id}">Reassign to ${alternatives[0].name}</button>`
+        : `<span class="inspect-why">No free ${resource.type.toLowerCase()} available for ${b.startDate} → ${b.endDate}</span>`;
+      return `
+        <div class="inspect-booking-row">
+          <div class="inspect-booking-title">${b.tripName}</div>
+          <div class="inspect-booking-meta">${b.customer} &middot; ${b.startDate} to ${b.endDate}</div>
+          <div class="inspect-booking-actions">${altBtn}</div>
+        </div>
+      `;
+    })
+    .join("");
+
+  els.inspectModalBody.innerHTML = `
+    <p class="inspect-cell-header">
+      <strong>${resource.name}</strong> (${resource.type}) has <strong>${collidingBookings.length} overlapping bookings</strong>
+      on <strong>${dateLabel}</strong> — that's why the board flags this cell red.
+      Reassign one of them to clear the clash:
+    </p>
+    ${rows}
+  `;
+
+  els.inspectModalBody.querySelectorAll(".inspect-reassign-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const bookingId = btn.getAttribute("data-booking-id");
+      const altId = btn.getAttribute("data-alt-id");
+      const booking = state.bookings.find((b) => b.id === bookingId);
+      const altResource = state.resources.find((r) => r.id === altId);
+      if (!booking || !altResource) return;
+      booking.resourceId = altId;
+      saveState(state);
+      renderAll();
+      closeInspectModal();
+      showFormSuccess(`Reassigned "${booking.tripName}" to ${altResource.name} — conflict cleared.`);
+    });
+  });
+
+  els.inspectModal.classList.remove("hidden");
+}
+
+function closeInspectModal() {
+  els.inspectModal.classList.add("hidden");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   els.conflictCancelBtn.addEventListener("click", closeConflictModal);
+  els.inspectCloseBtn.addEventListener("click", closeInspectModal);
   els.conflictProceedBtn.addEventListener("click", () => {
     if (!pendingConflict) return;
     commitBooking(pendingConflict.pendingBooking);
