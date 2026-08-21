@@ -97,9 +97,39 @@ function saveState(state) {
 }
 
 function freshState() {
+  const bookings = buildSeedBookings();
+  const alerts = [];
+  
+  // Dynamically compute seed conflict alerts on first run
+  const CE = window.ConflictEngine || {
+    computeConflictMap: () => ({}),
+    findOverlaps: () => []
+  };
+  
+  const conflictMap = CE.computeConflictMap(bookings);
+  const flagged = new Set();
+  
+  // Sort bookings by date so alerts appear in order
+  const sortedBookings = bookings.slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
+  
+  for (const b of sortedBookings) {
+    const overlaps = CE.findOverlaps(bookings, b.resourceId, b.startDate, b.endDate, b.id);
+    if (overlaps.length > 0 && !flagged.has(b.id)) {
+      const res = RESOURCE_CATALOG.find((r) => r.id === b.resourceId);
+      const resName = res ? res.name : b.resourceId;
+      const overlapsText = overlaps.map(o => `"${o.tripName}"`).join(" & ");
+      alerts.push({
+        time: "09:00 AM",
+        text: `Clash: ${resName} double-booked. "${b.tripName}" overlaps with ${overlapsText} on ${b.startDate}.`
+      });
+      flagged.add(b.id);
+      overlaps.forEach(o => flagged.add(o.id));
+    }
+  }
+
   return {
     resources: RESOURCE_CATALOG.map((r) => ({ ...r })),
-    bookings: buildSeedBookings(),
-    alerts: [],
+    bookings,
+    alerts,
   };
 }

@@ -39,10 +39,12 @@
       </div>
       <div class="week-nav">
         <button type="button" id="prev-week-btn" class="nav-btn" title="Previous week">&#8592;</button>
+        <button type="button" id="today-btn" class="nav-btn">Today</button>
         <span id="week-label" class="week-label"></span>
         <button type="button" id="next-week-btn" class="nav-btn" title="Next week">&#8594;</button>
       </div>
       <button type="button" id="print-btn" class="nav-btn" title="Print schedule (Ctrl+P)">Print</button>
+      <button type="button" id="demo-btn" class="nav-btn" style="background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #04202a; border: none; font-weight: bold;" title="Watch Demo (D)">Watch Demo</button>
     </div>
 
     <div id="board-container" class="board-container"></div>
@@ -59,7 +61,24 @@
   </section>
 
   <aside class="sidebar">
-    <div class="stats-bar" id="stats-bar"></div>
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat-box">
+        <div id="stat-bookings" class="stat-value tone-neutral">0</div>
+        <div class="stat-label">Active Bookings</div>
+      </div>
+      <div class="stat-box">
+        <div id="stat-conflicts" class="stat-value tone-conflict">0</div>
+        <div class="stat-label">Conflicts</div>
+      </div>
+      <div class="stat-box">
+        <div id="stat-resources" class="stat-value tone-neutral">0</div>
+        <div class="stat-label">Total Resources</div>
+      </div>
+      <div class="stat-box">
+        <div id="stat-utilization" class="stat-value tone-ok">0%</div>
+        <div class="stat-label">Utilization</div>
+      </div>
+    </div>
 
     <div class="card">
       <h2 class="panel-title">New Booking <kbd>N</kbd></h2>
@@ -74,6 +93,11 @@
 
         <label for="form-resource">Resource</label>
         <select id="form-resource" required></select>
+
+        <div id="form-new-resource-wrap" class="hidden">
+          <label for="form-new-resource-name">New Resource Name</label>
+          <input id="form-new-resource-name" type="text" placeholder="e.g. Kavya Rao" />
+        </div>
 
         <label for="form-trip">Trip / Job Name</label>
         <input id="form-trip" type="text" placeholder="e.g. Goa Beach Circuit" required />
@@ -127,12 +151,21 @@
 <div id="conflict-modal" class="modal-overlay hidden">
   <div class="modal">
     <h2>Conflict Detected</h2>
-    <p id="modal-message"></p>
-    <div id="modal-suggestion" class="modal-suggestion"></div>
+    <div id="conflict-modal-body"></div>
     <div class="modal-actions">
-      <button type="button" id="modal-switch-btn" class="primary-btn">Switch Resource</button>
-      <button type="button" id="modal-force-btn" class="secondary-btn">Book Anyway</button>
-      <button type="button" id="modal-cancel-btn" class="ghost-btn">Cancel</button>
+      <button type="button" id="conflict-switch-btn" class="primary-btn">Switch Resource</button>
+      <button type="button" id="conflict-proceed-btn" class="secondary-btn">Book Anyway</button>
+      <button type="button" id="conflict-cancel-btn" class="ghost-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="inspect-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>Conflict Inspector</h2>
+    <div id="inspect-modal-body"></div>
+    <div class="modal-actions">
+      <button type="button" id="inspect-close-btn" class="ghost-btn">Close</button>
     </div>
   </div>
 </div>
@@ -144,8 +177,9 @@
   <kbd>R</kbd> reset demo &middot; <kbd>Ctrl+Z</kbd> undo &middot; <kbd>Ctrl+P</kbd> print &middot; <kbd>Esc</kbd> close dialog
 </p>
 
-<script src="core.js"></script>
+<script src="conflict-engine.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
+<script src="date-validation.js"></script>
 </body>
 </html>
