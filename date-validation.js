@@ -37,13 +37,13 @@
   function validateDates(startValue, endValue) {
     const today = todayIsoDate();
     if (!startValue || startValue < today) {
-      return "Enter a valid date. Bookings cannot be made for past dates.";
+      return "Please enter a valid booking date. Past dates cannot be booked.";
     }
     if (!endValue || endValue < today) {
-      return "Enter a valid date. Bookings cannot be made for past dates.";
+      return "Please enter a valid booking date. Past dates cannot be booked.";
     }
     if (endValue < startValue) {
-      return "Check the dates — the end date can't be before the start date.";
+      return "End date cannot be before start date. Please correct the dates.";
     }
     return null;
   }

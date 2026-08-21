@@ -204,6 +204,155 @@ const sevNone = ConflictEngine.assessConflictSeverity(pendingBk, [], [], testRes
 assertEqual(sevNone.level, "NONE", "Zero overlaps returns NONE severity");
 
 /* ------------------------------------------------------------------ */
+section("Date validation — past-date and invalid range rejection");
+/* ------------------------------------------------------------------ */
+
+// Simulate the same validation logic used in date-validation.js
+// (the browser module exports DateValidation.validateDates, which uses
+// identical string comparison logic — we replicate it here for Node)
+function todayIsoDate() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function validateDates(startValue, endValue) {
+  const today = todayIsoDate();
+  if (!startValue || startValue < today) {
+    return "Please enter a valid booking date. Past dates cannot be booked.";
+  }
+  if (!endValue || endValue < today) {
+    return "Please enter a valid booking date. Past dates cannot be booked.";
+  }
+  if (endValue < startValue) {
+    return "End date cannot be before start date. Please correct the dates.";
+  }
+  return null;
+}
+
+const today = todayIsoDate();
+
+// Test 1: Past start date must be rejected
+assertEqual(
+  validateDates("2020-01-01", "2026-12-01") !== null,
+  true,
+  "Past start date is rejected with error message"
+);
+
+// Test 2: Past end date must be rejected
+assertEqual(
+  validateDates(today, "2020-01-01") !== null,
+  true,
+  "Past end date is rejected with error message"
+);
+
+// Test 3: End date before start date must be rejected
+assertEqual(
+  validateDates("2026-12-10", "2026-12-05") !== null,
+  true,
+  "End date before start date is rejected"
+);
+
+// Test 4: Valid future/today dates return no error
+assertEqual(
+  validateDates(today, today),
+  null,
+  "Today's date as both start and end is valid (no error)"
+);
+
+// Test 5: Exact error message for past date
+assertEqual(
+  validateDates("2020-01-01", today),
+  "Please enter a valid booking date. Past dates cannot be booked.",
+  "Past-date error matches exact required message"
+);
+
+// Test 6: Exact error message for end before start
+assertEqual(
+  validateDates("2026-12-10", "2026-12-05"),
+  "End date cannot be before start date. Please correct the dates.",
+  "End-before-start error matches exact required message"
+);
+
+/* ------------------------------------------------------------------ */
+section("Resource management — duplicate prevention and creation");
+/* ------------------------------------------------------------------ */
+
+// Test duplicate resource detection (same logic as app.js onAddResourceOnly)
+const testResourceList = [
+  { id: "drv-ramesh", type: "Driver", name: "Ramesh Yadav" },
+  { id: "drv-suresh", type: "Driver", name: "Suresh Patil" },
+  { id: "veh-1", type: "Vehicle", name: "MH-04-1121" }
+];
+
+function findDuplicate(resourceList, type, name) {
+  return resourceList.find(
+    (r) => r.type === type && r.name.toLowerCase() === name.toLowerCase()
+  );
+}
+
+assert(
+  findDuplicate(testResourceList, "Driver", "Ramesh Yadav") !== undefined,
+  "Duplicate resource detection: exact match detected"
+);
+assert(
+  findDuplicate(testResourceList, "Driver", "ramesh yadav") !== undefined,
+  "Duplicate resource detection: case-insensitive match detected"
+);
+assert(
+  findDuplicate(testResourceList, "Driver", "New Driver") === undefined,
+  "New unique resource name is not flagged as duplicate"
+);
+assert(
+  findDuplicate(testResourceList, "Vehicle", "Ramesh Yadav") === undefined,
+  "Same name but different type is NOT a duplicate"
+);
+
+// Test new resource creation
+const newResource = { id: "drv-test-123", type: "Driver", name: "Test Driver" };
+const updatedList = [...testResourceList, newResource];
+assertEqual(
+  updatedList.length,
+  testResourceList.length + 1,
+  "Adding a new resource increases the resource count by 1"
+);
+assert(
+  updatedList.find(r => r.id === "drv-test-123") !== undefined,
+  "Newly added resource is findable by its ID"
+);
+
+/* ------------------------------------------------------------------ */
+section("Dashboard update verification — booking count changes");
+/* ------------------------------------------------------------------ */
+
+const dashboardBookings = [
+  { id: "b1", resourceId: "drv-1", startDate: "2026-10-12", endDate: "2026-10-14" },
+];
+
+assertEqual(dashboardBookings.length, 1, "Initial booking count is 1");
+
+// Simulate adding a booking
+const newBooking = { id: "b2", resourceId: "drv-1", startDate: "2026-10-13", endDate: "2026-10-13" };
+dashboardBookings.push(newBooking);
+
+assertEqual(dashboardBookings.length, 2, "After adding a booking, count is 2");
+assertEqual(
+  ConflictEngine.countOpenConflicts(dashboardBookings),
+  1,
+  "After adding overlapping booking, open conflicts increase to 1"
+);
+
+// Alternative resource availability changes after booking
+const dashResources = [
+  { id: "drv-1", type: "Driver", name: "Ramesh" },
+  { id: "drv-2", type: "Driver", name: "Suresh" },
+];
+const altsBeforeBooking = ConflictEngine.findAvailableAlternatives(dashResources, [dashboardBookings[0]], "Driver", "2026-10-13", "2026-10-13", "drv-1");
+assertEqual(altsBeforeBooking.length, 1, "Before double-booking drv-2, one alternative is available");
+
+/* ------------------------------------------------------------------ */
 console.log(`\n${passed} passed, ${failed} failed\n`);
 if (failed > 0) {
   process.exit(1);

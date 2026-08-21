@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Resource Clash & Double-Booking Detector</title>
+<meta name="description" content="Travel & Hospitality operations dashboard that automatically detects double-bookings across drivers, vehicles, guides, and hotel rooms with one-click conflict resolution." />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -158,8 +159,8 @@
     </div>
 
     <div class="card">
-      <h2 class="panel-title">Booking Pressure</h2>
-      <p class="panel-note">Rule-based heuristic, not machine learning — flags days where resource demand is high.</p>
+      <h2 class="panel-title">Booking Pressure <span style="font-weight:400; font-size:10px; text-transform:none; letter-spacing:normal;">— utilization-based indicator</span></h2>
+      <p class="panel-note">Rule-based heuristic — flags resource types with high booking density this week. Not machine learning.</p>
       <div id="pressure-panel"></div>
     </div>
 
