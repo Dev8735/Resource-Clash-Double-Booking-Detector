@@ -21,6 +21,10 @@
   --glow-accent: rgba(0, 212, 255, 0.15);
 }
 
+.hidden {
+  display: none !important;
+}
+
 * {
   box-sizing: border-box;
 }

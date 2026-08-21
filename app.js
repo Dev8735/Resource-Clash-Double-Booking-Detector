@@ -67,7 +67,14 @@ function cacheEls() {
   els.bookingsList = document.getElementById("bookings-list");
   els.resourceForm = document.getElementById("resource-form");
   els.newResourceType = document.getElementById("new-resource-type");
+  els.genericResourceWrap = document.getElementById("generic-resource-wrap");
+  els.newResourceNameLabel = document.getElementById("new-resource-name-label");
   els.newResourceName = document.getElementById("new-resource-name");
+  els.hotelRoomWrap = document.getElementById("hotel-room-wrap");
+  els.newHotelName = document.getElementById("new-hotel-name");
+  els.newRoomNumber = document.getElementById("new-room-number");
+  els.newRoomType = document.getElementById("new-room-type");
+  els.resourceFormFeedback = document.getElementById("resource-form-feedback");
   els.demoBtn = document.getElementById("demo-btn");
 }
 
@@ -78,6 +85,12 @@ function bindEvents() {
   els.formResource.addEventListener("change", toggleNewResourceField);
   els.bookingForm.addEventListener("submit", onSubmitBooking);
   els.resourceForm.addEventListener("submit", onAddResourceOnly);
+
+  if (els.newResourceType) {
+    els.newResourceType.addEventListener("change", toggleAddResourceFormFields);
+  }
+  toggleAddResourceFormFields();
+
   els.resetBtn.addEventListener("click", onResetDemo);
   els.printBtn.addEventListener("click", () => window.print());
   els.prevWeekBtn.addEventListener("click", () => shiftBoard(-BOARD_DAYS));
@@ -873,30 +886,125 @@ function commitBooking(booking) {
   toggleNewResourceField();
 }
 
-function onAddResourceOnly(e) {
-  e.preventDefault();
+function toggleAddResourceFormFields() {
+  if (!els.newResourceType) return;
   const typeVal = els.newResourceType.value;
-  const nameVal = els.newResourceName.value.trim();
-  if (!nameVal) {
-    showToast("Please enter a resource name.", "error");
-    return;
+  const isRoom = typeVal === "room";
+
+  if (els.genericResourceWrap) els.genericResourceWrap.classList.toggle("hidden", isRoom);
+  if (els.hotelRoomWrap) els.hotelRoomWrap.classList.toggle("hidden", !isRoom);
+
+  if (!isRoom && els.newResourceNameLabel && els.newResourceName) {
+    if (typeVal === "driver") {
+      els.newResourceNameLabel.textContent = "Driver Name";
+      els.newResourceName.placeholder = "e.g. Sanjay Chauhan";
+    } else if (typeVal === "vehicle") {
+      els.newResourceNameLabel.textContent = "Vehicle Details (Reg No, Type, Seats)";
+      els.newResourceName.placeholder = "e.g. GJ-05-PQ-6677 – SUV – 6 Seats";
+    } else if (typeVal === "guide") {
+      els.newResourceNameLabel.textContent = "Guide Name & Languages";
+      els.newResourceName.placeholder = "e.g. Neha Joshi";
+    }
   }
-  const type = typeVal.charAt(0).toUpperCase() + typeVal.slice(1);
-  const existing = state.resources.find(
-    (r) => r.type === type && r.name.toLowerCase() === nameVal.toLowerCase()
-  );
-  if (existing) {
-    showToast(`"${nameVal}" already exists as a ${typeVal}.`, "error");
-    return;
+}
+
+function showResourceFormError(msg) {
+  if (els.resourceFormFeedback) {
+    els.resourceFormFeedback.textContent = msg;
+    els.resourceFormFeedback.className = "form-feedback form-feedback-error";
+  } else {
+    showToast(msg, "error");
   }
-  const resourceId = `${typeVal}-${slugify(nameVal)}-${Date.now()}`;
-  state.resources.push({ id: resourceId, type, name: nameVal });
+}
+
+function showResourceFormSuccess(msg) {
+  if (els.resourceFormFeedback) {
+    els.resourceFormFeedback.textContent = msg;
+    els.resourceFormFeedback.className = "form-feedback form-feedback-success";
+  } else {
+    showToast(msg, "success");
+  }
+}
+
+function onAddResourceOnly(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  if (els.resourceFormFeedback) {
+    els.resourceFormFeedback.textContent = "";
+    els.resourceFormFeedback.className = "form-feedback";
+  }
+
+  const typeVal = els.newResourceType.value;
+  const type = typeVal === "room" ? "Room" : (typeVal.charAt(0).toUpperCase() + typeVal.slice(1));
+  let nameVal = "";
+  let resourceObj = {};
+
+  if (typeVal === "room") {
+    const hotelName = els.newHotelName ? els.newHotelName.value.trim() : "";
+    const roomNum = els.newRoomNumber ? els.newRoomNumber.value.trim() : "";
+    const roomType = els.newRoomType ? els.newRoomType.value.trim() : "";
+
+    if (!hotelName || !roomNum || !roomType) {
+      showResourceFormError("Please enter Hotel Name, Room Number, and Room Type.");
+      return;
+    }
+
+    nameVal = `${hotelName} — Room ${roomNum} (${roomType})`;
+    const cleanHotel = slugify(hotelName);
+    const cleanRoom = slugify(roomNum);
+    const resourceId = `rm-${cleanHotel}-${cleanRoom}`;
+
+    // Duplicate check by ID or exact name
+    const existing = state.resources.find(
+      (r) => r.id === resourceId || r.name.toLowerCase() === nameVal.toLowerCase()
+    );
+    if (existing) {
+      showResourceFormError(`Resource "${nameVal}" already exists.`);
+      return;
+    }
+
+    resourceObj = {
+      id: resourceId,
+      type: "Room",
+      name: nameVal,
+      hotelName,
+      roomNumber: roomNum,
+      roomType
+    };
+  } else {
+    nameVal = els.newResourceName ? els.newResourceName.value.trim() : "";
+    if (!nameVal) {
+      showResourceFormError(`Please enter details for the new ${typeVal}.`);
+      return;
+    }
+
+    const existing = state.resources.find(
+      (r) => r.type === type && r.name.toLowerCase() === nameVal.toLowerCase()
+    );
+    if (existing) {
+      showResourceFormError(`"${nameVal}" already exists as a ${typeVal}.`);
+      return;
+    }
+
+    const typePrefix = typeVal === "driver" ? "drv" : typeVal === "vehicle" ? "veh" : "gd";
+    const resourceId = `${typePrefix}-${slugify(nameVal)}-${Date.now()}`;
+    resourceObj = { id: resourceId, type, name: nameVal };
+  }
+
+  state.resources.push(resourceObj);
   saveState(state);
+
+  showResourceFormSuccess(`✓ Resource "${nameVal}" added successfully.`);
+  showToast(`✓ Resource "${nameVal}" added successfully.`, "success");
+
+  // Reset form inputs
+  if (els.newResourceName) els.newResourceName.value = "";
+  if (els.newHotelName) els.newHotelName.value = "";
+  if (els.newRoomNumber) els.newRoomNumber.value = "";
+  if (els.newRoomType) els.newRoomType.value = "";
 
   populateBookingFormOptions();
   renderAll();
-  els.newResourceName.value = "";
-  showToast(`✓ Resource "${nameVal}" added successfully.`, "success");
 }
 
 function cancelBooking(bookingId) {

@@ -324,6 +324,36 @@ assert(
 );
 
 /* ------------------------------------------------------------------ */
+section("Hotel room conflict isolation — room-level vs hotel-level");
+/* ------------------------------------------------------------------ */
+
+const hotelResources = [
+  { id: "rm-taj-101", type: "Room", name: "Taj Skyline Ahmedabad — Room 101 (Deluxe)", hotelName: "Taj Skyline Ahmedabad", roomNumber: "101" },
+  { id: "rm-taj-102", type: "Room", name: "Taj Skyline Ahmedabad — Room 102 (Deluxe)", hotelName: "Taj Skyline Ahmedabad", roomNumber: "102" },
+];
+
+const hotelBookings = [
+  { id: "b-room-101", resourceId: "rm-taj-101", tripName: "Statue of Unity VIP", startDate: "2026-08-25", endDate: "2026-08-28" },
+  { id: "b-room-102", resourceId: "rm-taj-102", tripName: "Udaipur Tour", startDate: "2026-08-25", endDate: "2026-08-28" }
+];
+
+assertEqual(
+  ConflictEngine.findOverlaps(hotelBookings, "rm-taj-101", "2026-08-25", "2026-08-28", "b-room-101").length,
+  0,
+  "Different rooms in the SAME hotel booked on overlapping dates do NOT conflict with each other"
+);
+
+// Booking exact same room for overlapping dates
+const overlappingSameRoom = { id: "b-room-101-clash", resourceId: "rm-taj-101", tripName: "Conference Group", startDate: "2026-08-26", endDate: "2026-08-27" };
+const hotelBookingsWithClash = [...hotelBookings, overlappingSameRoom];
+
+assertEqual(
+  ConflictEngine.findOverlaps(hotelBookingsWithClash, "rm-taj-101", "2026-08-26", "2026-08-27", "b-room-101-clash").map(b => b.id),
+  ["b-room-101"],
+  "Booking the exact SAME room for overlapping dates correctly flags a conflict"
+);
+
+/* ------------------------------------------------------------------ */
 section("Dashboard update verification — booking count changes");
 /* ------------------------------------------------------------------ */
 

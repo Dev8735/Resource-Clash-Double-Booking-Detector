@@ -73,7 +73,9 @@ All logic lives in `conflict-engine.js` — the same code that runs in the brows
 | Dashboard Statistics (bookings, conflicts, resolved, resources, utilization) | ✅ Implemented |
 | Booking Pressure (rule-based utilization heuristic with Low/Moderate/High/Critical) | ✅ Implemented |
 | Activity / Conflict Feed with timestamps | ✅ Implemented |
-| Add New Resource with duplicate validation | ✅ Implemented |
+| Add New Resource (Generic or Hotel Room with Hotel Name, Room No, Room Type) | ✅ Implemented |
+| Duplicate resource prevention (case-insensitive & ID check) | ✅ Implemented |
+| Room-level conflict isolation (different rooms in same hotel do NOT clash) | ✅ Implemented |
 | "How This Solves The Problem" before/after comparison | ✅ Implemented |
 | 8-Step Interactive Watch Demo Tour | ✅ Implemented |
 | LocalStorage persistence (bookings + resources survive refresh) | ✅ Implemented |
@@ -81,7 +83,7 @@ All logic lives in `conflict-engine.js` — the same code that runs in the brows
 | Print/Export Schedule Board | ✅ Implemented |
 | Keyboard Shortcuts (`N`, `/`, `T`, `R`, `D`, `Ctrl+Z`, `Ctrl+P`, `Esc`) | ✅ Implemented |
 | Responsive layout (desktop, tablet, mobile) | ✅ Implemented |
-| Automated Unit Test Suite (`node tests.js`) | ✅ Implemented |
+| Automated Unit Test Suite (`node tests.js`) | ✅ Implemented (42 tests) |
 
 ## Prototype Limitations
 

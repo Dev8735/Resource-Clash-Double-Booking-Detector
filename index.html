@@ -1,226 +1,258 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Resource Clash & Double-Booking Detector</title>
-<meta name="description" content="Travel & Hospitality operations dashboard that automatically detects double-bookings across drivers, vehicles, guides, and hotel rooms with one-click conflict resolution." />
-<link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resource Clash & Double-Booking Detector</title>
+  <meta name="description"
+    content="Travel & Hospitality operations dashboard that automatically detects double-bookings across drivers, vehicles, guides, and hotel rooms with one-click conflict resolution." />
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 
-<header class="topbar">
-  <div class="topbar-left">
-    <div class="logo">&#9670;</div>
-    <div>
-      <h1>Resource Clash &amp; Double-Booking Detector</h1>
-      <p class="subtitle">Live scheduling board for drivers, vehicles, guides &amp; rooms</p>
-    </div>
-  </div>
-  <div class="topbar-right">
-    <span class="live-clock" id="live-clock"></span>
-  </div>
-</header>
-
-<main class="layout">
-
-  <section class="board-panel">
-    <div class="toolbar">
-      <input id="search-input" type="text" placeholder="Search resources… ( / )" class="search-input" />
-      <select id="type-filter" class="type-filter">
-        <option value="all">All types</option>
-        <option value="driver">Drivers</option>
-        <option value="vehicle">Vehicles</option>
-        <option value="guide">Guides</option>
-        <option value="room">Rooms</option>
-      </select>
-      <div class="view-toggle">
-        <button type="button" id="view-grid-btn" class="toggle-btn active">Grid</button>
-        <button type="button" id="view-timeline-btn" class="toggle-btn">Timeline</button>
-      </div>
-      <div class="week-nav">
-        <button type="button" id="prev-week-btn" class="nav-btn" title="Previous week">&#8592;</button>
-        <button type="button" id="today-btn" class="nav-btn">Today</button>
-        <span id="week-label" class="week-label"></span>
-        <button type="button" id="next-week-btn" class="nav-btn" title="Next week">&#8594;</button>
-      </div>
-      <button type="button" id="print-btn" class="nav-btn" title="Print schedule (Ctrl+P)">Print</button>
-      <button type="button" id="demo-btn" class="nav-btn" style="background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #04202a; border: none; font-weight: bold;" title="Watch Demo (D)">Watch Demo</button>
-    </div>
-
-    <div id="board-container" class="board-container"></div>
-
-    <div class="conflict-feed-wrap">
-      <h2 class="panel-title">Conflict Feed</h2>
-      <div id="conflict-feed" class="conflict-feed"></div>
-    </div>
-
-    <div class="bookings-list-wrap">
-      <h2 class="panel-title">All Bookings</h2>
-      <div id="bookings-list" class="bookings-list"></div>
-    </div>
-  </section>
-
-  <aside class="sidebar">
-    <div class="stats-bar" id="stats-bar">
-      <div class="stat-box">
-        <div id="stat-bookings" class="stat-value tone-neutral">0</div>
-        <div class="stat-label">Active Bookings</div>
-      </div>
-      <div class="stat-box">
-        <div id="stat-conflicts" class="stat-value tone-conflict">0</div>
-        <div class="stat-label">Conflicts</div>
-      </div>
-      <div class="stat-box">
-        <div id="stat-resolved" class="stat-value tone-resolved">0</div>
-        <div class="stat-label">Resolved</div>
-      </div>
-      <div class="stat-box">
-        <div id="stat-resources" class="stat-value tone-neutral">0</div>
-        <div class="stat-label">Total Resources</div>
-      </div>
-      <div class="stat-box">
-        <div id="stat-utilization" class="stat-value tone-ok">0%</div>
-        <div class="stat-label">Utilization</div>
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="logo">&#9670;</div>
+      <div>
+        <h1>Resource Clash &amp; Double-Booking Detector</h1>
+        <p class="subtitle">Live scheduling board for drivers, vehicles, guides &amp; rooms</p>
       </div>
     </div>
-
-    <div class="card" id="operational-summary-card">
-      <h2 class="panel-title">Today's Operational Summary</h2>
-      <div id="operational-summary" class="operational-summary-grid"></div>
+    <div class="topbar-right">
+      <span class="live-clock" id="live-clock"></span>
     </div>
+  </header>
 
-    <div class="card">
-      <h2 class="panel-title">New Booking <kbd>N</kbd></h2>
-      <form id="booking-form" novalidate>
-        <label for="form-type">Resource Type</label>
-        <select id="form-type" required>
-          <option value="driver">Driver</option>
-          <option value="vehicle">Vehicle</option>
-          <option value="guide">Guide</option>
-          <option value="room">Room</option>
+  <main class="layout">
+
+    <section class="board-panel">
+      <div class="toolbar">
+        <input id="search-input" type="text" placeholder="Search resources… ( / )" class="search-input" />
+        <select id="type-filter" class="type-filter">
+          <option value="all">All types</option>
+          <option value="driver">Drivers</option>
+          <option value="vehicle">Vehicles</option>
+          <option value="guide">Guides</option>
+          <option value="room">Rooms</option>
         </select>
-
-        <label for="form-resource">Resource</label>
-        <select id="form-resource" required></select>
-
-        <div id="form-new-resource-wrap" class="hidden">
-          <label for="form-new-resource-name">New Resource Name</label>
-          <input id="form-new-resource-name" type="text" placeholder="e.g. Kavya Rao" />
+        <div class="view-toggle">
+          <button type="button" id="view-grid-btn" class="toggle-btn active">Grid</button>
+          <button type="button" id="view-timeline-btn" class="toggle-btn">Timeline</button>
         </div>
-
-        <label for="form-trip">Trip / Job Name</label>
-        <input id="form-trip" type="text" placeholder="e.g. Goa Beach Circuit" required />
-
-        <label for="form-customer">Customer</label>
-        <input id="form-customer" type="text" placeholder="e.g. Sharma Family" required />
-
-        <div class="date-row">
-          <div>
-            <label for="form-start">Start Date</label>
-            <input id="form-start" type="date" required />
-          </div>
-          <div>
-            <label for="form-end">End Date</label>
-            <input id="form-end" type="date" required />
-          </div>
+        <div class="week-nav">
+          <button type="button" id="prev-week-btn" class="nav-btn" title="Previous week">&#8592;</button>
+          <button type="button" id="today-btn" class="nav-btn">Today</button>
+          <span id="week-label" class="week-label"></span>
+          <button type="button" id="next-week-btn" class="nav-btn" title="Next week">&#8594;</button>
         </div>
+        <button type="button" id="print-btn" class="nav-btn" title="Print schedule (Ctrl+P)">Print</button>
+        <button type="button" id="demo-btn" class="nav-btn"
+          style="background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #04202a; border: none; font-weight: bold;"
+          title="Watch Demo (D)">Watch Demo</button>
+      </div>
 
-        <button type="submit" class="primary-btn">&#9889; Check &amp; Book</button>
-        <p id="form-feedback" class="form-feedback" role="status" aria-live="polite"></p>
-      </form>
-    </div>
+      <div id="board-container" class="board-container"></div>
 
-    <div class="card impact-card">
-      <h2 class="panel-title">How This Solves The Problem</h2>
-      <div class="impact-comparison">
-        <div class="impact-column without">
-          <div class="impact-header">WITHOUT CLASH DETECTOR</div>
-          <ul>
-            <li>Manual schedule checking</li>
-            <li>Double bookings discovered late</li>
-            <li>Staff manually search for replacements</li>
-            <li>Higher risk of trip disruption</li>
-            <li>Poor visibility of resource availability</li>
-          </ul>
+      <div class="conflict-feed-wrap">
+        <h2 class="panel-title">Conflict Feed</h2>
+        <div id="conflict-feed" class="conflict-feed"></div>
+      </div>
+
+      <div class="bookings-list-wrap">
+        <h2 class="panel-title">All Bookings</h2>
+        <div id="bookings-list" class="bookings-list"></div>
+      </div>
+    </section>
+
+    <aside class="sidebar">
+      <div class="stats-bar" id="stats-bar">
+        <div class="stat-box">
+          <div id="stat-bookings" class="stat-value tone-neutral">0</div>
+          <div class="stat-label">Active Bookings</div>
         </div>
-        <div class="impact-column with">
-          <div class="impact-header">WITH CLASH DETECTOR</div>
-          <ul>
-            <li>Automatic overlap detection</li>
-            <li>Conflict identified immediately</li>
-            <li>Available alternative suggested</li>
-            <li>One-click resource reassignment</li>
-            <li>Better operational visibility</li>
-            <li>Reduced risk of last-minute disruption</li>
-          </ul>
+        <div class="stat-box">
+          <div id="stat-conflicts" class="stat-value tone-conflict">0</div>
+          <div class="stat-label">Conflicts</div>
+        </div>
+        <div class="stat-box">
+          <div id="stat-resolved" class="stat-value tone-resolved">0</div>
+          <div class="stat-label">Resolved</div>
+        </div>
+        <div class="stat-box">
+          <div id="stat-resources" class="stat-value tone-neutral">0</div>
+          <div class="stat-label">Total Resources</div>
+        </div>
+        <div class="stat-box">
+          <div id="stat-utilization" class="stat-value tone-ok">0%</div>
+          <div class="stat-label">Utilization</div>
         </div>
       </div>
-    </div>
 
-    <div class="card">
-      <h2 class="panel-title">Booking Pressure <span style="font-weight:400; font-size:10px; text-transform:none; letter-spacing:normal;">— utilization-based indicator</span></h2>
-      <p class="panel-note">Rule-based heuristic — flags resource types with high booking density this week. Not machine learning.</p>
-      <div id="pressure-panel"></div>
-    </div>
+      <div class="card" id="operational-summary-card">
+        <h2 class="panel-title">Today's Operational Summary</h2>
+        <div id="operational-summary" class="operational-summary-grid"></div>
+      </div>
 
-    <div class="card">
-      <h2 class="panel-title">Add a Resource</h2>
-      <form id="resource-form" novalidate>
-        <label for="new-resource-type">Type</label>
-        <select id="new-resource-type" required>
-          <option value="driver">Driver</option>
-          <option value="vehicle">Vehicle</option>
-          <option value="guide">Guide</option>
-          <option value="room">Room</option>
-        </select>
-        <label for="new-resource-name">Name / Identifier</label>
-        <input id="new-resource-name" type="text" placeholder="e.g. Rohit Sharma" required />
-        <button type="submit" class="secondary-btn">Add Resource</button>
-      </form>
-    </div>
+      <div class="card">
+        <h2 class="panel-title">New Booking <kbd>N</kbd></h2>
+        <form id="booking-form" novalidate>
+          <label for="form-type">Resource Type</label>
+          <select id="form-type" required>
+            <option value="driver">Driver</option>
+            <option value="vehicle">Vehicle</option>
+            <option value="guide">Guide</option>
+            <option value="room">Room</option>
+          </select>
 
-    <button type="button" id="reset-btn" class="ghost-btn">Reset Demo Data <kbd>R</kbd></button>
-  </aside>
+          <label for="form-resource">Resource</label>
+          <select id="form-resource" required></select>
 
-</main>
+          <div id="form-new-resource-wrap" class="hidden">
+            <label for="form-new-resource-name">New Resource Name</label>
+            <input id="form-new-resource-name" type="text" placeholder="e.g. Kavya Rao" />
+          </div>
 
-<div id="conflict-modal" class="modal-overlay hidden">
-  <div class="modal conflict-modal-wide">
-    <div class="modal-header">
-      <h2>Resource Conflict Detected</h2>
-      <span id="conflict-severity-badge" class="severity-badge">HIGH</span>
-    </div>
-    <div id="conflict-modal-body"></div>
-    <div class="modal-actions">
-      <button type="button" id="conflict-switch-btn" class="primary-btn">&#9889; Switch Automatically</button>
-      <button type="button" id="conflict-view-schedule-btn" class="secondary-btn">View Schedule</button>
-      <button type="button" id="conflict-proceed-btn" class="secondary-btn ghost-style">Book Anyway (Mark Conflict)</button>
-      <button type="button" id="conflict-cancel-btn" class="ghost-btn">Cancel</button>
+          <label for="form-trip">Trip / Job Name</label>
+          <input id="form-trip" type="text" placeholder="e.g. Goa Beach Circuit" required />
+
+          <label for="form-customer">Customer</label>
+          <input id="form-customer" type="text" placeholder="e.g. Sharma Family" required />
+
+          <div class="date-row">
+            <div>
+              <label for="form-start">Start Date</label>
+              <input id="form-start" type="date" required />
+            </div>
+            <div>
+              <label for="form-end">End Date</label>
+              <input id="form-end" type="date" required />
+            </div>
+          </div>
+
+          <button type="submit" class="primary-btn">&#9889; Check &amp; Book</button>
+          <p id="form-feedback" class="form-feedback" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+
+      <div class="card impact-card">
+        <h2 class="panel-title">How This Solves The Problem</h2>
+        <div class="impact-comparison">
+          <div class="impact-column without">
+            <div class="impact-header">WITHOUT CLASH DETECTOR</div>
+            <ul>
+              <li>Manual schedule checking</li>
+              <li>Double bookings discovered late</li>
+              <li>Staff manually search for replacements</li>
+              <li>Higher risk of trip disruption</li>
+              <li>Poor visibility of resource availability</li>
+            </ul>
+          </div>
+          <div class="impact-column with">
+            <div class="impact-header">WITH CLASH DETECTOR</div>
+            <ul>
+              <li>Automatic overlap detection</li>
+              <li>Conflict identified immediately</li>
+              <li>Available alternative suggested</li>
+              <li>One-click resource reassignment</li>
+              <li>Better operational visibility</li>
+              <li>Reduced risk of last-minute disruption</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="panel-title">Booking Pressure <span
+            style="font-weight:400; font-size:10px; text-transform:none; letter-spacing:normal;">— utilization-based
+            indicator</span></h2>
+        <p class="panel-note">Rule-based heuristic — flags resource types with high booking density this week. Not
+          machine learning.</p>
+        <div id="pressure-panel"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="panel-title">Add a Resource</h2>
+        <form id="resource-form" novalidate>
+          <label for="new-resource-type">Type</label>
+          <select id="new-resource-type" required>
+            <option value="driver">Driver</option>
+            <option value="vehicle">Vehicle</option>
+            <option value="guide">Guide</option>
+            <option value="room">Hotel Room</option>
+          </select>
+
+          <div id="generic-resource-wrap">
+            <label for="new-resource-name" id="new-resource-name-label">Driver / Resource Name</label>
+            <input id="new-resource-name" type="text" placeholder="e.g. Sanjay Chauhan" />
+          </div>
+
+          <div id="hotel-room-wrap" class="hidden">
+            <label for="new-hotel-name">Hotel Name</label>
+            <input id="new-hotel-name" type="text" placeholder="e.g. Grand Bhagwati" />
+
+            <div class="date-row" style="margin-top: 0;">
+              <div>
+                <label for="new-room-number">Room Number</label>
+                <input id="new-room-number" type="text" placeholder="e.g. 501" />
+              </div>
+              <div>
+                <label for="new-room-type">Room Type</label>
+                <input id="new-room-type" type="text" placeholder="e.g. Deluxe Suite" />
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="secondary-btn">Add Resource</button>
+          <p id="resource-form-feedback" class="form-feedback" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+
+      <button type="button" id="reset-btn" class="ghost-btn">Reset Demo Data <kbd>R</kbd></button>
+    </aside>
+
+  </main>
+
+  <div id="conflict-modal" class="modal-overlay hidden">
+    <div class="modal conflict-modal-wide">
+      <div class="modal-header">
+        <h2>Resource Conflict Detected</h2>
+        <span id="conflict-severity-badge" class="severity-badge">HIGH</span>
+      </div>
+      <div id="conflict-modal-body"></div>
+      <div class="modal-actions">
+        <button type="button" id="conflict-switch-btn" class="primary-btn">&#9889; Switch Automatically</button>
+        <button type="button" id="conflict-view-schedule-btn" class="secondary-btn">View Schedule</button>
+        <button type="button" id="conflict-proceed-btn" class="secondary-btn ghost-style">Book Anyway (Mark
+          Conflict)</button>
+        <button type="button" id="conflict-cancel-btn" class="ghost-btn">Cancel</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div id="inspect-modal" class="modal-overlay hidden">
-  <div class="modal">
-    <h2>Conflict Inspector</h2>
-    <div id="inspect-modal-body"></div>
-    <div class="modal-actions">
-      <button type="button" id="inspect-close-btn" class="ghost-btn">Close</button>
+  <div id="inspect-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h2>Conflict Inspector</h2>
+      <div id="inspect-modal-body"></div>
+      <div class="modal-actions">
+        <button type="button" id="inspect-close-btn" class="ghost-btn">Close</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div id="toast-container" class="toast-container"></div>
+  <div id="toast-container" class="toast-container"></div>
 
-<p class="shortcuts-hint">
-  Shortcuts: <kbd>N</kbd> new booking &middot; <kbd>/</kbd> search &middot; <kbd>T</kbd> toggle view &middot;
-  <kbd>R</kbd> reset demo &middot; <kbd>Ctrl+Z</kbd> undo &middot; <kbd>Ctrl+P</kbd> print &middot; <kbd>Esc</kbd> close dialog
-</p>
+  <p class="shortcuts-hint">
+    Shortcuts: <kbd>N</kbd> new booking &middot; <kbd>/</kbd> search &middot; <kbd>T</kbd> toggle view &middot;
+    <kbd>R</kbd> reset demo &middot; <kbd>Ctrl+Z</kbd> undo &middot; <kbd>Ctrl+P</kbd> print &middot; <kbd>Esc</kbd>
+    close dialog
+  </p>
 
-<script src="conflict-engine.js"></script>
-<script src="data.js"></script>
-<script src="app.js"></script>
-<script src="date-validation.js"></script>
+  <script src="conflict-engine.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script src="date-validation.js"></script>
 </body>
+
 </html>
