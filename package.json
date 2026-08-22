@@ -1,0 +1,25 @@
+{
+  "name": "resource-clash-double-booking-detector",
+  "version": "1.0.0",
+  "description": "Travel & Hospitality Operations Dashboard - Hackathon Prototype",
+  "main": "index.html",
+  "scripts": {
+    "test": "node tests.js",
+    "start": "python -m http.server 8000",
+    "dev": "py -m http.server 8000"
+  },
+  "keywords": [
+    "resource",
+    "scheduling",
+    "conflict",
+    "double-booking",
+    "travel",
+    "hospitality"
+  ],
+  "author": "Dev Chokhawala",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dev8735/Resource-Clash-Double-Booking-Detector.git"
+  }
+}

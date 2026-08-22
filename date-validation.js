@@ -1,97 +1,67 @@
-/**
- * date-validation.js
- * Past-date booking guard and date range validator.
- *
- * Intercepts booking form submissions in the CAPTURE phase to ensure:
- * - Start date and end date are not in the past.
- * - End date is not before start date.
- * - Displays exact required error messaging.
- */
-(function () {
-  function todayIsoDate() {
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
+// date-validation.js - Date validation utilities
+
+function validateDates(startStr, endStr) {
+  if (!startStr || !endStr) {
+    return { valid: false, error: 'Both start and end dates required' };
   }
 
-  function showFeedback(message) {
-    const feedback = document.getElementById('form-feedback');
-    if (feedback) {
-      feedback.textContent = message;
-      feedback.className = 'form-feedback form-feedback-error';
-      feedback.style.color = '#ff4d4d';
-    }
+  const start = new Date(startStr);
+  const end = new Date(endStr);
 
-    const toastContainer = document.getElementById('toast-container');
-    if (toastContainer) {
-      const toast = document.createElement('div');
-      toast.className = 'toast toast-error';
-      toast.textContent = message;
-      toastContainer.appendChild(toast);
-      setTimeout(() => toast.remove(), 4000);
-    }
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    return { valid: false, error: 'Invalid date format' };
   }
 
-  function validateDates(startValue, endValue) {
-    const today = todayIsoDate();
-    if (!startValue || startValue < today) {
-      return "Please enter a valid booking date. Past dates cannot be booked.";
-    }
-    if (!endValue || endValue < today) {
-      return "Please enter a valid booking date. Past dates cannot be booked.";
-    }
-    if (endValue < startValue) {
-      return "End date cannot be before start date. Please correct the dates.";
-    }
-    return null;
+  if (start >= end) {
+    return { valid: false, error: 'End date must be after start date' };
   }
 
-  function init() {
-    const startInput = document.getElementById('form-start');
-    const endInput = document.getElementById('form-end');
-    const form = document.getElementById('booking-form');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    if (!startInput || !form) return;
-
-    const today = todayIsoDate();
-
-    // Visual prevention in browser datepicker
-    startInput.min = today;
-    if (endInput) endInput.min = today;
-
-    startInput.addEventListener('change', () => {
-      if (endInput) {
-        endInput.min = startInput.value && startInput.value > today ? startInput.value : today;
-      }
-    });
-
-    // Hard guard: capture phase submit event listener
-    form.addEventListener(
-      'submit',
-      (event) => {
-        const startValue = startInput.value;
-        const endValue = endInput ? endInput.value : '';
-        const error = validateDates(startValue, endValue);
-        if (error) {
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          showFeedback(error);
-        }
-      },
-      true // capture phase
-    );
+  if (start < today) {
+    return { valid: false, error: 'Cannot book in the past' };
   }
 
-  // Export validateDates helper globally for app.js and tests.js if needed
-  if (typeof window !== 'undefined') {
-    window.DateValidation = { todayIsoDate, validateDates };
+  return { valid: true };
+}
+
+function isValidDateString(dateStr) {
+  const date = new Date(dateStr);
+  return !isNaN(date.getTime());
+}
+
+function isDateInPast(dateStr) {
+  const date = new Date(dateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date < today;
+}
+
+function formatDateForInput(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getDateRange(startDate, endDate) {
+  const dates = [];
+  const current = new Date(startDate);
+
+  while (current <= endDate) {
+    dates.push(new Date(current));
+    current.setDate(current.getDate() + 1);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
+  return dates;
+}
+
+function daysOverlap(start1, end1, start2, end2) {
+  const s1 = new Date(start1);
+  const e1 = new Date(end1);
+  const s2 = new Date(start2);
+  const e2 = new Date(end2);
+
+  return s1 < e2 && s2 < e1;
+}
