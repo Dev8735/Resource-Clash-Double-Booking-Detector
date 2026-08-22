@@ -1,420 +1,210 @@
-:root {
-  --bg: #0b0f14;
-  --panel: #131a24;
-  --panel-alt: #0f151d;
-  --border: #232c3a;
-  --text: #e6edf3;
-  --text-dim: #8b96a5;
-  --accent: #22d3ee;
-  --accent-dark: #0e7490;
-  --driver: #3b82f6;
-  --vehicle: #a78bfa;
-  --guide: #34d399;
-  --room: #fb923c;
-  --open: #4b5563;
-  --booked: #f5a623;
-  --conflict: #ef4444;
-  --conflict-bg: rgba(239, 68, 68, 0.12);
-  --radius: 8px;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DISPATCH — Resource Clash &amp; Double-Booking Detector</title>
+<meta name="description" content="DISPATCH checks every driver, vehicle, guide, and room booking the instant it's entered — catching double-bookings before they reach the day of the trip." />
+<link rel="icon" href="data:," />
+<link rel="stylesheet" href="style.css?v=3" />
+<link rel="stylesheet" href="landing.css?v=3" />
+</head>
+<body>
 
-* { box-sizing: border-box; }
+<nav class="lp-nav">
+  <div class="lp-nav-brand">
+    <div class="mark" style="width:32px;height:32px;">
+      <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M4 12h16M4 12l5-5M4 12l5 5" stroke="#04141a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span style="font-family:var(--font-display);font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:17px;">Dispatch</span>
+  </div>
+  <div class="lp-nav-links">
+    <a href="#problem">Problem</a>
+    <a href="#solution">Solution</a>
+    <a href="#features">Features</a>
+    <a href="#roadmap">Roadmap</a>
+  </div>
+  <div class="lp-nav-cta">
+    <a href="https://github.com/Dev8735/Resource-Clash-Double-Booking-Detector" class="lp-btn lp-btn-ghost" target="_blank" rel="noopener">GitHub</a>
+    <a href="app.html" class="lp-btn lp-btn-primary">Launch live demo →</a>
+  </div>
+</nav>
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 14px;
-}
+<header class="lp-hero">
+  <div class="lp-hero-copy">
+    <span class="lp-eyebrow"><span class="pulse"></span> Travel &amp; Hospitality Hackathon · Solo build</span>
+    <h1>Stop finding the<br/>double-booking<br/><em>on the day of the trip.</em></h1>
+    <p class="lead">DISPATCH checks every driver, vehicle, guide, and hotel room booking against the schedule the instant it's entered — and if two trips collide, it tells your team exactly what clashed and hands them a free alternative in one click.</p>
+    <div class="lp-hero-actions">
+      <a href="app.html" class="lp-btn lp-btn-primary lp-btn-lg">Launch live demo →</a>
+      <a href="app.html?tour=1" class="lp-btn lp-btn-ghost lp-btn-lg">Take the guided tour</a>
+    </div>
+    <div class="lp-hero-meta">
+      <span><i></i> Zero build step</span>
+      <span><i></i> No backend, no accounts</span>
+      <span><i></i> Live in your browser now</span>
+    </div>
+  </div>
 
-/* ---------- Topbar ---------- */
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 24px;
-  border-bottom: 1px solid var(--border);
-  background: var(--panel-alt);
-}
-.topbar-left { display: flex; align-items: center; gap: 12px; }
-.logo {
-  width: 34px; height: 34px;
-  display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-  border-radius: 8px;
-  color: #04202a;
-  font-size: 16px;
-}
-.topbar h1 { margin: 0; font-size: 16px; }
-.subtitle { margin: 2px 0 0; font-size: 12px; color: var(--text-dim); }
-.topbar-right { display: flex; align-items: center; gap: 14px; }
-.demo-btn {
-  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-  color: #04202a;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 12.5px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.demo-btn:hover { filter: brightness(1.08); }
+  <div class="lp-board-mock" aria-hidden="true">
+    <div class="lp-board-mock-head">
+      <b>Live schedule board</b>
+      <span class="lp-mock-siren"><i></i>1 clash live</span>
+    </div>
 
-/* ---------- Utilization panel ---------- */
-.utilization-wrap { padding: 14px 16px; margin-bottom: 16px; }
-.util-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; }
-.util-label { width: 190px; flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
-.util-track { flex: 1; height: 14px; background: var(--panel-alt); border-radius: 4px; overflow: hidden; }
-.util-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-dark)); }
-.util-fill.high { background: linear-gradient(90deg, var(--booked), var(--conflict)); }
-.util-pct { width: 40px; text-align: right; color: var(--text-dim); flex-shrink: 0; }
+    <div class="lp-mock-row">
+      <div class="lp-mock-label"><span class="lp-mock-chip" style="background:#2dd4ea33;border:1px solid #2dd4ea;"></span>Ramesh Y.</div>
+      <div class="lp-mock-cell c"></div><div class="lp-mock-cell c"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div>
+    </div>
+    <div class="lp-mock-row">
+      <div class="lp-mock-label"><span class="lp-mock-chip" style="background:#2dd4ea33;border:1px solid #2dd4ea;"></span>Suresh P.</div>
+      <div class="lp-mock-cell b"></div><div class="lp-mock-cell b"></div><div class="lp-mock-cell b"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div>
+    </div>
+    <div class="lp-mock-row">
+      <div class="lp-mock-label"><span class="lp-mock-chip" style="background:#34d39933;border:1px solid #34d399;"></span>MH-04-1121</div>
+      <div class="lp-mock-cell c"></div><div class="lp-mock-cell c"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div>
+    </div>
+    <div class="lp-mock-row">
+      <div class="lp-mock-label"><span class="lp-mock-chip" style="background:#8b7cf633;border:1px solid #8b7cf6;"></span>Priya Nair</div>
+      <div class="lp-mock-cell"></div><div class="lp-mock-cell b"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div>
+    </div>
+    <div class="lp-mock-row">
+      <div class="lp-mock-label"><span class="lp-mock-chip" style="background:#ffb02033;border:1px solid #ffb020;"></span>Room 204</div>
+      <div class="lp-mock-cell b"></div><div class="lp-mock-cell b"></div><div class="lp-mock-cell b"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div>
+    </div>
 
-.bookings-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.mini-btn {
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 11.5px;
-  cursor: pointer;
-}
-.mini-btn:hover { border-color: var(--accent); }
+    <div class="lp-mock-foot">Suggested fix: <b>switch to Suresh Patil</b> — free for both dates.</div>
+  </div>
+</header>
 
-/* ---------- Guided tour ---------- */
-.tour-overlay {
-  position: fixed; inset: 0;
-  z-index: 300;
-}
-.tour-overlay.hidden { display: none; }
-.tour-spotlight {
-  position: absolute;
-  border: 2px solid var(--accent);
-  border-radius: 8px;
-  box-shadow: 0 0 0 4000px rgba(0,0,0,0.65);
-  transition: all 0.3s ease;
-  pointer-events: none;
-}
-.tour-tooltip {
-  position: absolute;
-  background: var(--panel);
-  border: 1px solid var(--accent);
-  border-radius: 8px;
-  padding: 14px 16px;
-  width: 260px;
-  transition: all 0.3s ease;
-}
-.tour-text { font-size: 12.5px; color: var(--text); line-height: 1.5; margin: 0 0 10px; }
-.tour-actions { display: flex; justify-content: flex-end; gap: 8px; }
-.tour-btn { width: auto; margin-top: 0; padding: 6px 12px; font-size: 12px; }
+<section class="lp-section" id="problem">
+  <div class="lp-problem">
+    <div>
+      <h2 class="lp-h2">Spreadsheets don't warn you.</h2>
+      <p class="lp-body-text">Travel agency ops teams still track driver, vehicle, guide, and room schedules in spreadsheets or paper registers. Nothing checks a new booking against what's already on the books — so the same driver or vehicle gets assigned to two trips on the same day, and nobody notices until someone's standing at the pickup point with no ride.</p>
+      <ul class="lp-pain-list">
+        <li><b>01</b> Clashes are discovered the day of the trip, not the day they're booked.</li>
+        <li><b>02</b> Re-checking the whole register by hand doesn't scale during peak season.</li>
+        <li><b>03</b> Finding a replacement driver or vehicle under pressure means more mistakes, not fewer.</li>
+      </ul>
+    </div>
+    <div class="lp-stat-quote">
+      <div class="big">2 clashes</div>
+      <p>are already live on the seeded demo board below — a driver and a vehicle both double-booked for the same trip window. That's the exact scenario this tool exists to catch before it happens.</p>
+    </div>
+  </div>
+</section>
 
-/* ---------- Layout ---------- */
-.layout {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 20px;
-  padding: 20px 24px 60px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-@media (max-width: 980px) {
-  .layout { grid-template-columns: 1fr; }
-}
+<section class="lp-section tight" id="solution">
+  <h2 class="lp-h2">Checked the moment it's entered.</h2>
+  <p class="lp-body-text" style="max-width:640px;">Every booking runs through a straightforward date-range overlap check against existing bookings for that same resource — no ML, no black box, just a rule anyone can audit.</p>
 
-.card, .board-panel > .toolbar, .conflict-feed-wrap, .bookings-list-wrap {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-.card { padding: 16px; margin-bottom: 16px; }
+  <div class="lp-flow">
+    <div class="lp-flow-step active">
+      <div class="lp-flow-num">01</div>
+      <h3>Staff enters a booking</h3>
+      <p>Resource type, resource, trip name, customer, and date range — the same fields a spreadsheet row would have.</p>
+    </div>
+    <div class="lp-flow-step active">
+      <div class="lp-flow-num">02</div>
+      <h3>DISPATCH checks it instantly</h3>
+      <p><code style="font-family:var(--font-mono);font-size:12px;color:var(--cyan);">startA ≤ endB &amp;&amp; startB ≤ endA</code> against every existing booking for that resource.</p>
+    </div>
+    <div class="lp-flow-step active">
+      <div class="lp-flow-num">03</div>
+      <h3>Confirmed, or alerted with a fix</h3>
+      <p>No clash → booked instantly. Clash → staff sees exactly what it collides with and a free alternative of the same type.</p>
+    </div>
+  </div>
+</section>
 
-.panel-title {
-  margin: 0 0 8px;
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.panel-note { margin: 0 0 10px; font-size: 12px; color: var(--text-dim); font-style: italic; }
+<section class="lp-section" id="features">
+  <h2 class="lp-h2">What's actually implemented</h2>
+  <p class="lp-body-text" style="max-width:640px;">Everything below is running in the live demo — not slideware. Nothing here is claimed as done unless you can click it.</p>
 
-/* ---------- Toolbar ---------- */
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  padding: 12px 14px;
-  margin-bottom: 14px;
-}
-.search-input, .type-filter {
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 7px 10px;
-  border-radius: 6px;
-  font-size: 13px;
-}
-.search-input { flex: 1; min-width: 160px; }
-.view-toggle { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-.toggle-btn {
-  background: var(--panel-alt);
-  color: var(--text-dim);
-  border: none;
-  padding: 7px 12px;
-  font-size: 12.5px;
-  cursor: pointer;
-}
-.toggle-btn.active { background: var(--accent); color: #04202a; font-weight: 600; }
-.week-nav { display: flex; align-items: center; gap: 8px; }
-.nav-btn {
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 6px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12.5px;
-}
-.nav-btn:hover { border-color: var(--accent); }
-.week-label { font-size: 12.5px; color: var(--text-dim); min-width: 130px; text-align: center; }
+  <div class="lp-feature-grid">
+    <div class="lp-feature-card">
+      <div class="lp-feature-icon" style="background:var(--cyan-soft);color:var(--cyan);">◆</div>
+      <h3>Live dispatch board</h3>
+      <p>Every resource against the coming week, color-coded Open / Booked / Conflict, filterable by type and searchable by name or trip.</p>
+    </div>
+    <div class="lp-feature-card">
+      <div class="lp-feature-icon" style="background:var(--red-soft);color:var(--red);">⚠</div>
+      <h3>Conflict modal + suggestion</h3>
+      <p>Shows the exact colliding booking(s) and the nearest free alternative resource — switch, force-book, or cancel in one click.</p>
+    </div>
+    <div class="lp-feature-card">
+      <div class="lp-feature-icon" style="background:var(--green-soft);color:var(--green);">▤</div>
+      <h3>Timeline view</h3>
+      <p>A Gantt-style week view per resource, for staff who think in bars on a calendar rather than a grid of cells.</p>
+    </div>
+    <div class="lp-feature-card">
+      <div class="lp-feature-icon" style="background:var(--violet-soft);color:var(--violet);">⌘</div>
+      <h3>Command palette</h3>
+      <p><kbd>⌘K</kbd> for instant search across every action — filter, export, jump weeks, undo, print — without touching a menu.</p>
+    </div>
+    <div class="lp-feature-card">
+      <div class="lp-feature-icon" style="background:var(--amber-soft);color:var(--amber);">▦</div>
+      <h3>Analytics panel</h3>
+      <p>Bookings by resource type, utilization by type, and a clash trend line for the visible window — all live, no ML.</p>
+    </div>
+    <div class="lp-feature-card">
+      <div class="lp-feature-icon" style="background:var(--cyan-soft);color:var(--cyan);">↺</div>
+      <h3>Undo, export, print</h3>
+      <p>Full undo stack for every change, one-click CSV export, and a print-ready stylesheet for the schedule board.</p>
+    </div>
+  </div>
 
-/* ---------- Board ---------- */
-.board-container { overflow-x: auto; margin-bottom: 16px; }
-table.board-table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
-table.board-table th, table.board-table td {
-  border: 1px solid var(--border);
-  padding: 8px 10px;
-  text-align: center;
-  white-space: nowrap;
-}
-table.board-table th {
-  background: var(--panel-alt);
-  color: var(--text-dim);
-  font-weight: 600;
-  font-size: 11.5px;
-}
-td.resource-cell {
-  text-align: left;
-  background: var(--panel-alt);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+  <div class="lp-tech-strip">
+    <span class="lp-tech-badge">HTML5</span>
+    <span class="lp-tech-badge">CSS3 — no framework</span>
+    <span class="lp-tech-badge">Vanilla JavaScript (ES6+)</span>
+    <span class="lp-tech-badge">Browser localStorage</span>
+    <span class="lp-tech-badge">GitHub Pages</span>
+    <span class="lp-tech-badge">Zero runtime dependencies</span>
+  </div>
+</section>
 
-.type-badge {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  padding: 2px 6px;
-  border-radius: 4px;
-  text-transform: uppercase;
-}
-.type-badge.driver { background: rgba(59,130,246,0.15); color: var(--driver); }
-.type-badge.vehicle { background: rgba(167,139,250,0.15); color: var(--vehicle); }
-.type-badge.guide { background: rgba(52,211,153,0.15); color: var(--guide); }
-.type-badge.room { background: rgba(251,146,60,0.15); color: var(--room); }
+<section class="lp-section tight" id="roadmap">
+  <h2 class="lp-h2">Prototype scope, on purpose</h2>
+  <p class="lp-body-text" style="max-width:640px;">This is a hackathon prototype — client-side only, single browser session, seeded demo data. That's a deliberate choice to keep it a self-contained static site with zero hosting risk before judging, not a limitation we're hiding.</p>
+  <div class="lp-roadmap">
+    <div class="lp-roadmap-item">
+      <span class="lp-roadmap-tag">Next</span>
+      <div class="lp-roadmap-body"><b>Real backend</b><span>Node/Express + Postgres so multiple staff see the same live board.</span></div>
+    </div>
+    <div class="lp-roadmap-item">
+      <span class="lp-roadmap-tag">Next</span>
+      <div class="lp-roadmap-body"><b>SMS / email / WhatsApp alerts</b><span>Push clash and reassignment notices straight to drivers, guides, and hotel partners.</span></div>
+    </div>
+    <div class="lp-roadmap-item">
+      <span class="lp-roadmap-tag">Future</span>
+      <div class="lp-roadmap-body"><b>Trained demand-forecasting model</b><span>Genuine ML on top of the current rule-based pressure panel, clearly labelled when it ships.</span></div>
+    </div>
+    <div class="lp-roadmap-item">
+      <span class="lp-roadmap-tag">Future</span>
+      <div class="lp-roadmap-body"><b>Calendar sync + native apps</b><span>Two-way Google/Outlook sync per driver or guide, plus Android/iOS clients.</span></div>
+    </div>
+  </div>
+</section>
 
-.status-pill {
-  display: inline-block;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  padding: 3px 8px;
-  border-radius: 4px;
-  border: 1px solid transparent;
-}
-.status-pill.available { color: var(--text-dim); border-color: var(--border); }
-.status-pill.booked { color: var(--booked); border-color: var(--booked); background: rgba(245,166,35,0.1); }
-.status-pill.conflict { color: var(--conflict); border-color: var(--conflict); background: var(--conflict-bg); font-weight: 800; }
-td.cell-conflict { background: var(--conflict-bg); }
+<section class="lp-section">
+  <div class="lp-cta-banner">
+    <h2>See it catch a clash, live.</h2>
+    <p>The demo board loads with two real conflicts already on it — Driver Ramesh and Vehicle MH-04-1121, both double-booked today. Zero clicks needed to see the core feature working.</p>
+    <a href="app.html" class="lp-btn lp-btn-primary lp-btn-lg">Launch live demo →</a>
+  </div>
+</section>
 
-/* ---------- Timeline view ---------- */
-.timeline-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 4px;
-  border-bottom: 1px solid var(--border);
-}
-.timeline-label { width: 200px; flex-shrink: 0; display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
-.timeline-track { flex: 1; position: relative; height: 22px; background: var(--panel-alt); border-radius: 4px; }
-.timeline-bar {
-  position: absolute;
-  top: 2px;
-  height: 18px;
-  border-radius: 3px;
-  font-size: 10px;
-  color: #04202a;
-  display: flex;
-  align-items: center;
-  padding: 0 6px;
-  overflow: hidden;
-  white-space: nowrap;
-  background: var(--booked);
-}
-.timeline-bar.conflict { background: var(--conflict); color: #fff; }
+<footer class="lp-footer">
+  <div class="lp-footer-inner">
+    <p>DISPATCH — Travel &amp; Hospitality Hackathon, solo project by Dev Chokhawala. No passwords, credentials, or API keys — all data is simulated demo data.</p>
+    <div class="lp-footer-links">
+      <a href="https://github.com/Dev8735/Resource-Clash-Double-Booking-Detector" target="_blank" rel="noopener">GitHub repo</a>
+      <a href="app.html">Live demo</a>
+    </div>
+  </div>
+</footer>
 
-/* ---------- Conflict feed / bookings list ---------- */
-.conflict-feed-wrap, .bookings-list-wrap { padding: 14px 16px; margin-bottom: 16px; }
-.conflict-feed, .bookings-list { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; }
-.feed-empty { font-size: 12.5px; color: var(--text-dim); }
-.feed-item {
-  font-size: 12.5px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  background: var(--conflict-bg);
-  border: 1px solid rgba(239,68,68,0.3);
-  color: var(--text);
-}
-.booking-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
-}
-.booking-row .cancel-btn {
-  background: transparent;
-  border: 1px solid var(--conflict);
-  color: var(--conflict);
-  padding: 3px 9px;
-  border-radius: 5px;
-  font-size: 11px;
-  cursor: pointer;
-}
-.booking-row .cancel-btn:hover { background: var(--conflict-bg); }
-
-/* ---------- Stats bar ---------- */
-.stats-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-.stat-box {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px;
-  text-align: center;
-}
-.stat-value { font-size: 22px; font-weight: 800; }
-.stat-label { font-size: 10.5px; color: var(--text-dim); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.03em; }
-.stat-value.tone-conflict { color: var(--conflict); }
-.stat-value.tone-ok { color: var(--guide); }
-.stat-value.tone-neutral { color: var(--accent); }
-
-/* ---------- Forms ---------- */
-form label { display: block; font-size: 11.5px; color: var(--text-dim); margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 0.02em; }
-form input, form select {
-  width: 100%;
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 8px 10px;
-  border-radius: 6px;
-  font-size: 13px;
-}
-form input:focus, form select:focus { outline: none; border-color: var(--accent); }
-.date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-.primary-btn, .secondary-btn, .ghost-btn {
-  cursor: pointer;
-  font-size: 13px;
-  border-radius: 6px;
-  padding: 10px 14px;
-  width: 100%;
-  margin-top: 14px;
-  border: 1px solid transparent;
-}
-.primary-btn { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #04202a; font-weight: 700; }
-.primary-btn:hover { filter: brightness(1.08); }
-.secondary-btn { background: var(--panel-alt); border-color: var(--border); color: var(--text); }
-.secondary-btn:hover { border-color: var(--accent); }
-.ghost-btn { background: transparent; border-color: var(--border); color: var(--text-dim); }
-.ghost-btn:hover { color: var(--text); border-color: var(--text-dim); }
-
-.form-feedback { margin: 10px 0 0; font-size: 12.5px; min-height: 18px; }
-.form-feedback-success { color: var(--guide); }
-.form-feedback-error { color: var(--conflict); }
-
-/* ---------- Pressure panel ---------- */
-.pressure-day {
-  font-size: 12px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  margin-bottom: 6px;
-  border: 1px solid var(--border);
-}
-.pressure-day.conflict { border-color: var(--conflict); background: var(--conflict-bg); }
-.pressure-day.high { border-color: var(--booked); background: rgba(245,166,35,0.08); }
-.pressure-empty { font-size: 12.5px; color: var(--text-dim); }
-
-/* ---------- Modal ---------- */
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 100;
-}
-.modal-overlay.hidden { display: none; }
-.modal {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 22px;
-  width: 90%;
-  max-width: 420px;
-}
-.modal h2 { margin: 0 0 10px; font-size: 16px; color: var(--conflict); }
-.modal p { font-size: 13px; color: var(--text); line-height: 1.5; }
-.modal-suggestion { font-size: 12.5px; color: var(--text-dim); margin: 8px 0; }
-.modal-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
-.modal-actions button { margin-top: 0; }
-
-/* ---------- Toasts ---------- */
-.toast-container {
-  position: fixed; bottom: 20px; right: 20px;
-  display: flex; flex-direction: column; gap: 8px;
-  z-index: 200;
-}
-.toast {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
-  color: var(--text);
-  padding: 10px 14px;
-  border-radius: 6px;
-  font-size: 12.5px;
-  max-width: 300px;
-  animation: toast-in 0.2s ease-out;
-}
-.toast-error { border-left-color: var(--conflict); }
-.toast-success { border-left-color: var(--guide); }
-@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-kbd {
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 1px 5px;
-  font-size: 10.5px;
-  color: var(--text-dim);
-}
-
-.shortcuts-hint {
-  text-align: center;
-  font-size: 11px;
-  color: var(--text-dim);
-  padding: 10px 20px 24px;
-}
-
-/* ---------- Print ---------- */
-@media print {
-  .sidebar, .toolbar, .conflict-feed-wrap, .bookings-list-wrap, .shortcuts-hint, .toast-container { display: none !important; }
-  body { background: #fff; color: #000; }
-  .board-container { overflow: visible; }
-}
+</body>
+</html>

@@ -1,102 +1,221 @@
 # Resource Clash & Double-Booking Detector
 
-A live scheduling board for travel agencies — drivers, vehicles, guides, and
-hotel rooms — that detects double-bookings the moment they're created and
-suggests a free alternative.
+**Travel & Hospitality Operations Dashboard — Hackathon Prototype**
 
-**Zero backend, zero build step.** Pure HTML/CSS/JS with `localStorage`
-persistence — open `index.html` directly, or deploy to GitHub Pages in one
-click. No `npm install`, no server, nothing to configure.
+A browser-based operations control system for travel agencies that automatically detects double-bookings across drivers, vehicles, guides, and hotel rooms — evaluates conflict risk severity, suggests available alternatives, and enables one-click automated resolution.
 
-## Run it
+> **Live Demo:** [https://dev8735.github.io/Resource-Clash-Double-Booking-Detector/](https://dev8735.github.io/Resource-Clash-Double-Booking-Detector/)
+>
+> **GitHub:** [https://github.com/Dev8735/Resource-Clash-Double-Booking-Detector](https://github.com/Dev8735/Resource-Clash-Double-Booking-Detector)
 
-Just open `index.html` in a browser. That's the entire setup.
+---
 
-To deploy: push this repo to GitHub, then in **Settings → Pages**, set
-Source to "Deploy from a branch", branch `main`, folder `/ (root)`. Live in
-under two minutes.
+## The Problem
 
-## Status: Completed vs Planned
+Travel and hospitality operators manage multiple resources — drivers, vehicles, guides, and hotel rooms — across overlapping itineraries. Manual scheduling using spreadsheets, registers, or WhatsApp frequently causes:
 
-Per the hackathon rules, here's an honest split — everything under
-**Completed** is implemented and testable right now; nothing under
-**Planned** is claimed as done.
+- **Double-booking** of drivers, vehicles, guides, or rooms
+- **Last-minute conflict discovery** disrupting customer trips
+- **Manual searching** for replacement resources
+- **Operational delays** and customer dissatisfaction
 
-### Completed
-- Live resource board (Grid and Timeline views) across a 7-day window
-- Automatic conflict detection on every new booking, with the conflicting
-  trip named explicitly
-- Conflict resolution modal: **Switch Resource** (auto-picks a free
-  alternative), **Book Anyway** (forces it, shown as a visible conflict),
-  or **Cancel**
-- **Past-date validation** — a booking cannot start before today, both via
-  the date picker's `min` attribute and a hard server-side-equivalent check
-  in `core.js` (belt and suspenders — see Testing below)
-- Search resources by name, filter by type, navigate week-to-week
-- Cancel an existing booking
-- Add new resources on the fly
-- Reset to seed demo data at any time
-- "Booking Pressure" panel — an explicit **rule-based heuristic** (not
-  machine learning) flagging upcoming high-demand days, described as such
-  in its own UI copy
-- Conflict feed — a running list of every current conflict across the
-  board
-- Keyboard shortcuts: `N` new booking, `/` search, `T` toggle view, `R`
-  reset, `Ctrl+Z` undo, `Ctrl+P` print, `Esc` close dialog
-- Undo for the last add/cancel action
-- Print-friendly board export
-- `localStorage` persistence — your changes survive a page reload
-- **Resource Utilization panel** — percentage of the visible week each resource is booked, sorted busiest-first
-- **CSV export** — download all bookings as a spreadsheet-ready file
-- **Guided tour** ("▶ Watch Demo" button) — a real, working walkthrough that highlights each part of the interface in sequence, not a static screenshot
+## The Solution
 
-### Planned / Not Yet Implemented
-- Multi-user / multi-agency accounts
-- Real booking-system integration (currently seeded sample data)
-- A learned (rather than rule-based) demand-forecasting model
-- Mobile-optimized layout (currently desktop/tablet-first)
-
-## How the core logic works
-
-All scheduling logic — conflict detection, alternative suggestion, past-date
-validation, the demand-pressure heuristic — lives in `core.js`, kept
-deliberately free of any DOM dependency. That means it's the exact same code
-that runs in the browser and the code covered by the automated tests below —
-not a simulated or re-implemented version.
-
-Two bookings on the same resource conflict if their date ranges overlap:
+An automated operations dashboard that **detects overlapping bookings instantly** and **suggests available alternatives** with one-click reassignment:
 
 ```
-startA <= endB   AND   startB <= endA
+Staff Creates a Booking
+        ↓
+Date Validation (past-date prevention enforced)
+        ↓
+Resource Availability Check (date-range overlap detection)
+        ↓
+   ┌─────────────┐          ┌──────────────────────────────┐
+   │ No Conflict  │          │ Conflict Detected            │
+   │ → CONFIRMED  │          │ → Severity assessed          │
+   └─────────────┘          │ → Alternative suggested      │
+                             │ → One-click switch available │
+                             └──────────────────────────────┘
+        ↓
+Schedule Board + Dashboard + Conflict Feed Updated Immediately
 ```
 
-## Testing
+## How Conflict Detection Works
+
+The system uses **pure date-range overlap mathematics** (no AI/ML):
+
+1. When a booking is submitted, the engine checks all existing bookings for the **same resource**.
+2. Two bookings conflict if their date ranges overlap: `startA ≤ endB AND startB ≤ endA`.
+3. If a conflict is found, the system calculates severity (`MEDIUM`, `HIGH`, `CRITICAL`) based on resource type and number of overlapping bookings.
+4. It then searches all resources of the **same type** for one with **zero overlapping bookings** in the requested date range.
+5. The user can **switch to the alternative with one click**, setting the booking status to `RESOLVED`.
+
+All logic lives in `conflict-engine.js` — the same code that runs in the browser is the same code `tests.js` exercises.
+
+---
+
+## Implemented Features (Working Now)
+
+| Feature | Status |
+|---|---|
+| Resource Schedule Board (Grid & Timeline views) | ✅ Implemented |
+| Search & Resource Type Filter | ✅ Implemented |
+| Board Navigation (Previous / Next / Today) | ✅ Implemented |
+| Board starts from today — past dates never shown | ✅ Implemented |
+| Booking Creation with form controls | ✅ Implemented |
+| Strict Date Validation & Past Date Prevention | ✅ Implemented |
+| Real-time Conflict & Double-Booking Detection | ✅ Implemented |
+| Booking Status Lifecycle (`CONFIRMED`, `CONFLICT`, `RESOLVED`, `CANCELLED`) | ✅ Implemented |
+| Rule-Based Conflict Severity Assessment (`MEDIUM`, `HIGH`, `CRITICAL`) | ✅ Implemented |
+| Available Alternative Resource Suggestions | ✅ Implemented |
+| One-Click Automated Conflict Resolution | ✅ Implemented |
+| Today's Operational Summary Metrics | ✅ Implemented |
+| Dashboard Statistics (bookings, conflicts, resolved, resources, utilization) | ✅ Implemented |
+| Booking Pressure (rule-based utilization heuristic with Low/Moderate/High/Critical) | ✅ Implemented |
+| Activity / Conflict Feed with timestamps | ✅ Implemented |
+| Add New Resource (Generic or Hotel Room with Hotel Name, Room No, Room Type) | ✅ Implemented |
+| Duplicate resource prevention (case-insensitive & ID check) | ✅ Implemented |
+| Room-level conflict isolation (different rooms in same hotel do NOT clash) | ✅ Implemented |
+| "How This Solves The Problem" before/after comparison | ✅ Implemented |
+| 8-Step Interactive Watch Demo Tour | ✅ Implemented |
+| LocalStorage persistence (bookings + resources survive refresh) | ✅ Implemented |
+| Reset Demo Data | ✅ Implemented |
+| Print/Export Schedule Board | ✅ Implemented |
+| Keyboard Shortcuts (`N`, `/`, `T`, `R`, `D`, `Ctrl+Z`, `Ctrl+P`, `Esc`) | ✅ Implemented |
+| Responsive layout (desktop, tablet, mobile) | ✅ Implemented |
+| Automated Unit Test Suite (`node tests.js`) | ✅ Implemented (42 tests) |
+
+## Prototype Limitations
+
+This is a **static frontend prototype** — the following are **not implemented**:
+
+- No backend server, database, or API
+- No multi-user real-time synchronization (WebSocket)
+- No trained machine learning model (booking pressure uses a rule-based heuristic)
+- No SMS, email, or WhatsApp notifications
+- No user authentication or role-based access control
+- Data is stored in browser localStorage only (not shared across devices)
+
+## Future Scope
+
+- Multi-user backend with database (PostgreSQL/MongoDB)
+- WebSocket-based real-time sync across devices
+- ML-based demand forecasting model
+- SMS/WhatsApp alerts to drivers and guides
+- Calendar integration (Google Calendar, Outlook)
+- Mobile native app
+- Role-based access control for operators and managers
+
+---
+
+## Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Structure | HTML5 (semantic layout, accessible modals) |
+| Styling | CSS3 (custom dark theme, Space Grotesk / IBM Plex Mono / Inter) |
+| Logic | Vanilla JavaScript ES6+ (modular, no frameworks) |
+| Persistence | Browser LocalStorage |
+| Testing | Node.js (zero-dependency test runner) |
+| Deployment | GitHub Pages / any static hosting |
+
+## Project Structure
 
 ```
-node core.test.js
+├── index.html          # Main HTML structure & dashboard layout
+├── style.css           # Dark theme design system & responsive styles
+├── app.js              # UI controller, event handling, rendering & demo tour
+├── data.js             # Resource catalog, seed bookings & LocalStorage state
+├── conflict-engine.js  # Pure date-overlap logic & rule-based severity engine
+├── date-validation.js  # Date validation guard & past date prevention
+├── tests.js            # Automated unit test runner (37+ tests)
+├── README.md           # This file
+└── LICENSE             # Open-source license
 ```
 
-26 unit tests covering overlap detection, conflict finding, alternative
-suggestion, the past-date validation rule, schedule building, the
-demand-pressure heuristic, resource utilization calculations, and CSV
-export formatting — all passing. This is the same `core.js` file loaded by
-`index.html`, so these tests exercise the real logic, not a copy.
+## How to Run Locally
 
-## Project structure
+No build tools or `npm install` required.
 
+```bash
+# Clone the repository
+git clone https://github.com/Dev8735/Resource-Clash-Double-Booking-Detector.git
+cd Resource-Clash-Double-Booking-Detector
+
+# Serve with Python
+python -m http.server 8000
+# Or: py -m http.server 8000
+
+# Open in browser
+# http://localhost:8000
 ```
-index.html      Page structure and layout
-style.css        Dark theme styling
-core.js          Pure scheduling logic — no DOM dependency, fully unit tested
-core.test.js     Unit tests for core.js (run with plain Node)
-data.js          Seed/demo data, dates generated relative to "today"
-app.js           DOM wiring: rendering, event handlers, state, localStorage
+
+## Testing Instructions
+
+Run the automated test suite:
+
+```bash
+node tests.js
 ```
 
-## Known limitation, stated plainly
+Expected output: All tests pass (0 failures).
 
-Data is stored in the browser's `localStorage`, scoped to one browser on one
-device — it is not shared across users or devices. For a hackathon prototype
-demonstrating the core conflict-detection concept, this is an intentional
-simplification; a production version would sync through a real backend,
-which is listed under Planned above.
+Tests cover:
+1. No overlap detection
+2. Partial date overlap
+3. Full date overlap
+4. Same start date conflicts
+5. Same end date / boundary sharing
+6. One booking fully inside another
+7. Past-date booking rejection (exact error message verified)
+8. End date before start date rejection
+9. Alternative resource availability
+10. Duplicate resource prevention (case-insensitive)
+11. New resource creation and count verification
+12. Dashboard conflict count update after booking
+
+## Demo Flow
+
+Click **Watch Demo** (or press `D`) to see the automated demonstration:
+
+1. **Resource schedule board** loads with seed bookings
+2. **Staff creates booking** for Driver Ramesh Yadav on an overlapping date
+3. **Conflict detected** — overlap with existing "Goa Beach Circuit" booking
+4. **Severity assessed** — system evaluates operational risk
+5. **Alternative suggested** — Suresh Patil is available for the same dates
+6. **One-click switch** — staff clicks "Switch Automatically"
+7. **Conflict resolved** — booking status set to RESOLVED
+8. **Dashboard updated** — board, stats, and conflict feed reflect the change
+
+---
+
+## Impact
+
+| Without Clash Detector | With Clash Detector |
+|---|---|
+| Manual schedule checking | Automatic overlap detection |
+| Double-bookings discovered late | Conflicts identified immediately |
+| Staff manually search for replacements | Available alternatives suggested |
+| Higher risk of trip disruption | One-click resource reassignment |
+| Poor visibility of resource availability | Real-time operational dashboard |
+
+---
+
+*Built for the Travel & Hospitality hackathon track. Static prototype — no backend dependency.*
+
+---
+
+## Update: two-page structure
+
+This build splits the project into two pages:
+
+- **`index.html`** — the overview/marketing page (problem, solution, feature list). This is what
+  GitHub Pages serves at the repo root, and what a judge sees first.
+- **`app.html`** — the actual working dispatch board (the interactive prototype). Reached via the
+  "Launch live demo" button on the overview page, or directly at `app.html`. Append `?tour=1`
+  to auto-start the guided walkthrough (e.g. `app.html?tour=1`).
+
+`style.css` holds the shared design system used by both pages; `landing.css` holds layout rules
+specific to `index.html` only. `app.js` and `data.js` are unchanged in purpose — state, conflict
+detection, rendering, and seed data — but were rebuilt with a split-flap dispatch-board UI, a
+timeline view, a command palette (`⌘K`), analytics charts, undo, and CSV export.

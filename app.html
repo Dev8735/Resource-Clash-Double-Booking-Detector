@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DISPATCH — Resource Clash &amp; Double-Booking Detector</title>
+<meta name="description" content="Live scheduling board that catches double-bookings across drivers, vehicles, guides and rooms the instant they happen." />
+<link rel="icon" href="data:," />
+<link rel="stylesheet" href="style.css?v=3" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <a href="index.html" class="icon-btn" title="Back to overview" style="text-decoration:none;">←</a>
+    <div class="mark">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 12h16M4 12l5-5M4 12l5 5" stroke="#04141a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="brand-text">
+      <h1>Dispatch</h1>
+      <p class="tagline">Resource clash &amp; double-booking detector</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button type="button" class="kbtn" id="cmdk-open-btn">Search &amp; commands <kbd>⌘K</kbd></button>
+    <button type="button" class="kbtn" id="tour-start-btn">Guided tour</button>
+    <div class="siren" id="siren">
+      <span class="siren-dot"></span><span id="siren-text">All clear</span>
+    </div>
+    <div class="clock-block">
+      <div class="clock-time" id="clock-time">--:--:--</div>
+      <div class="clock-date" id="clock-date">—</div>
+    </div>
+  </div>
+</header>
+
+<main class="layout">
+
+  <section class="main-col">
+
+    <div class="stat-rail" id="stat-rail" data-tour="stats"></div>
+
+    <div class="toolbar" data-tour="toolbar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="search-input" type="text" class="search-input" placeholder="Search resources or trips…  ( / )" />
+      </div>
+      <select id="type-filter" class="select">
+        <option value="all">All types</option>
+        <option value="driver">Drivers</option>
+        <option value="vehicle">Vehicles</option>
+        <option value="guide">Guides</option>
+        <option value="room">Rooms</option>
+      </select>
+      <div class="seg" id="view-toggle">
+        <button type="button" data-view="grid" class="active">Board</button>
+        <button type="button" data-view="timeline">Timeline</button>
+      </div>
+      <div class="week-nav">
+        <button type="button" class="icon-btn" id="prev-week-btn" title="Previous week">‹</button>
+        <span id="week-label">—</span>
+        <button type="button" class="icon-btn" id="next-week-btn" title="Next week">›</button>
+      </div>
+      <span class="spacer"></span>
+      <button type="button" class="kbtn" id="export-btn">Export CSV</button>
+      <button type="button" class="kbtn" id="print-btn">Print</button>
+    </div>
+
+    <div class="panel" data-tour="board">
+      <div class="panel-head">
+        <h3 class="panel-title">Live schedule board <span class="tag" id="board-range">—</span></h3>
+      </div>
+      <div class="board-scroll" id="board-scroll"></div>
+      <div class="legend">
+        <span><i class="dot open"></i>Open</span>
+        <span><i class="dot booked"></i>Booked</span>
+        <span><i class="dot conflict"></i>Conflict</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3 class="panel-title">Conflict feed</h3>
+        <button type="button" class="row-del" id="clear-feed-btn" title="Clear feed" style="font-size:12px;">Clear</button>
+      </div>
+      <div class="feed" id="feed"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3 class="panel-title">Analytics</h3>
+        <span class="panel-sub" style="padding:0;">Visible 7-day window</span>
+      </div>
+      <div class="analytics-grid" id="analytics-grid"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3 class="panel-title">All bookings</h3>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>Resource</th><th>Trip</th><th>Customer</th><th>Dates</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="bookings-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
+  <aside class="sidebar">
+
+    <div class="panel panel-pad" data-tour="booking-form">
+      <h3 class="panel-title" style="margin-bottom:14px;">New booking</h3>
+      <form id="booking-form" novalidate>
+        <div class="field">
+          <label for="form-type">Resource type</label>
+          <select id="form-type" required>
+            <option value="driver">Driver</option>
+            <option value="vehicle">Vehicle</option>
+            <option value="guide">Guide</option>
+            <option value="room">Room</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="form-resource">Resource</label>
+          <select id="form-resource" required></select>
+        </div>
+        <div class="field">
+          <label for="form-trip">Trip / job name</label>
+          <input id="form-trip" type="text" placeholder="e.g. Goa Beach Circuit" required />
+        </div>
+        <div class="field">
+          <label for="form-customer">Customer</label>
+          <input id="form-customer" type="text" placeholder="e.g. Sharma Family" required />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="form-start">Start date</label>
+            <input id="form-start" type="date" required />
+          </div>
+          <div class="field">
+            <label for="form-end">End date</label>
+            <input id="form-end" type="date" required />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Check &amp; book</button>
+        <p id="form-feedback" class="form-feedback" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+
+    <div class="panel panel-pad" data-tour="pressure">
+      <h3 class="panel-title" style="margin-bottom:4px;">Booking pressure</h3>
+      <p class="panel-sub" style="padding:0 0 12px;">Rule-based utilization heuristic — not ML.</p>
+      <div id="pressure-panel"></div>
+    </div>
+
+    <div class="panel panel-pad">
+      <h3 class="panel-title" style="margin-bottom:14px;">Add a resource</h3>
+      <form id="resource-form" novalidate>
+        <div class="field">
+          <label for="new-resource-type">Type</label>
+          <select id="new-resource-type" required>
+            <option value="driver">Driver</option>
+            <option value="vehicle">Vehicle</option>
+            <option value="guide">Guide</option>
+            <option value="room">Room</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="new-resource-name">Name / identifier</label>
+          <input id="new-resource-name" type="text" placeholder="e.g. Rohit Sharma" required />
+        </div>
+        <button type="submit" class="btn btn-secondary">Add resource</button>
+      </form>
+    </div>
+
+    <button type="button" class="btn btn-ghost" id="undo-btn" disabled>Undo last action <kbd>Ctrl Z</kbd></button>
+    <button type="button" class="btn btn-danger" id="reset-btn">Reset demo data <kbd>R</kbd></button>
+
+  </aside>
+
+</main>
+
+<p class="shortcuts">
+  <span><kbd>N</kbd> new booking</span>
+  <span><kbd>/</kbd> search</span>
+  <span><kbd>T</kbd> toggle view</span>
+  <span><kbd>⌘K</kbd> command palette</span>
+  <span><kbd>Ctrl Z</kbd> undo</span>
+  <span><kbd>Ctrl P</kbd> print</span>
+  <span><kbd>R</kbd> reset demo</span>
+  <span><kbd>Esc</kbd> close dialog</span>
+</p>
+<p class="footer-credit">DISPATCH — client-side prototype, data stored in this browser only. No backend, no accounts, no real data.</p>
+
+<div class="overlay hidden" id="conflict-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="badge">⚠</div>
+      <h2>Clash detected</h2>
+    </div>
+    <p id="modal-message"></p>
+    <ul class="clash-list" id="modal-clash-list"></ul>
+    <div class="suggestion-box" id="modal-suggestion"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-primary" id="modal-switch-btn">Switch to suggested resource</button>
+      <button type="button" class="btn btn-secondary" id="modal-force-btn">Book anyway (keep clash)</button>
+      <button type="button" class="btn btn-ghost" id="modal-cancel-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="cmdk-overlay" style="align-items:flex-start;">
+  <div class="cmdk">
+    <input type="text" id="cmdk-input" class="cmdk-input" placeholder="Type a command or search…" />
+    <div class="cmdk-list" id="cmdk-list"></div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toast-stack"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
