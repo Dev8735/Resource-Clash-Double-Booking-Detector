@@ -1,515 +1,671 @@
-// app.js - Main application controller
+(function () {
+  'use strict';
 
-let currentFilter = '';
-let currentView = 'grid';
-let currentDateRange = { start: new Date(), end: new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000) };
-let currentBooking = null;
-let currentConflict = null;
-let demoStep = 0;
-let demoMode = false;
+  const STORAGE_KEY = 'rcbd_v2_state';
+  const core = window.RCBDCore;
 
-const DEMO_STEPS = [
-  {
-    text: "Welcome to the Resource Clash Detector. Let's take a quick tour of how it prevents double-bookings.",
-    action: () => renderBoard()
-  },
-  {
-    text: "The schedule board shows all your resources across 7 days. You can see drivers, vehicles, guides, and rooms with their current bookings.",
-    action: () => { }
-  },
-  {
-    text: "Let's create a new booking for Driver Ramesh on dates when he's already scheduled.",
-    action: () => {
-      document.getElementById('bookingType').value = 'Driver';
-      document.getElementById('bookingResource').value = 'Ramesh Yadav';
-      document.getElementById('bookingTrip').value = 'Demo Trip';
-      document.getElementById('bookingCustomer').value = 'Demo Customer';
-      const tomorrow = new Date(Date.now() + 86400000);
-      document.getElementById('bookingStart').value = tomorrow.toISOString().split('T')[0];
-      const nextDay = new Date(Date.now() + 172800000);
-      document.getElementById('bookingEnd').value = nextDay.toISOString().split('T')[0];
+  let state = loadState();
+  let undoStack = [];
+  let viewMode = 'grid';
+  let weekOffset = 0;
+  let searchQuery = '';
+  let typeFilter = 'all';
+  let pendingBooking = null; // holds the in-flight booking while the conflict modal is open
+
+  /* ---------------- State persistence ---------------- */
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {
+      console.warn('Could not read saved state, starting fresh.', e);
     }
-  },
-  {
-    text: "When we submit this booking, the system instantly detects the conflict with Ramesh's existing schedule.",
-    action: () => { }
-  },
-  {
-    text: "A conflict alert appears showing the severity and suggesting available alternatives from the same resource type.",
-    action: () => { }
-  },
-  {
-    text: "Staff can instantly switch to an available resource with one click instead of searching manually.",
-    action: () => { }
-  },
-  {
-    text: "The booking status changes to RESOLVED and the dashboard updates in real-time.",
-    action: () => { }
-  },
-  {
-    text: "That's how the Clash Detector works: detect, assess, suggest, resolve. No more last-minute scrambling.",
-    action: () => { }
+    return buildSeedData();
   }
-];
 
-// Initialize app
-document.addEventListener('DOMContentLoaded', () => {
-  initializeEventListeners();
-  loadInitialData();
-  renderBoard();
-  updateStats();
-});
-
-function initializeEventListeners() {
-  // Booking form
-  document.getElementById('bookingForm').addEventListener('submit', handleBookingSubmit);
-
-  // Resource form
-  document.getElementById('resourceForm').addEventListener('submit', handleResourceSubmit);
-  document.getElementById('resourceType').addEventListener('change', (e) => {
-    document.getElementById('roomFields').style.display = e.target.value === 'Room' ? 'block' : 'none';
-  });
-
-  // Filter and view
-  document.getElementById('filterType').addEventListener('change', (e) => {
-    currentFilter = e.target.value;
-    renderBoard();
-  });
-
-  document.getElementById('gridViewBtn').addEventListener('click', () => {
-    currentView = 'grid';
-    document.getElementById('gridViewBtn').classList.add('active');
-    document.getElementById('timelineViewBtn').classList.remove('active');
-    renderBoard();
-  });
-
-  document.getElementById('timelineViewBtn').addEventListener('click', () => {
-    currentView = 'timeline';
-    document.getElementById('timelineViewBtn').classList.add('active');
-    document.getElementById('gridViewBtn').classList.remove('active');
-    renderBoard();
-  });
-
-  // Navigation
-  document.getElementById('prevBtn').addEventListener('click', () => {
-    currentDateRange.start.setDate(currentDateRange.start.getDate() - 7);
-    currentDateRange.end.setDate(currentDateRange.end.getDate() - 7);
-    renderBoard();
-  });
-
-  document.getElementById('nextBtn').addEventListener('click', () => {
-    currentDateRange.start.setDate(currentDateRange.start.getDate() + 7);
-    currentDateRange.end.setDate(currentDateRange.end.getDate() + 7);
-    renderBoard();
-  });
-
-  document.getElementById('todayBtn').addEventListener('click', () => {
-    currentDateRange.start = new Date();
-    currentDateRange.end = new Date(new Date().getTime() + 6 * 24 * 60 * 60 * 1000);
-    renderBoard();
-  });
-
-  // Reset button
-  document.getElementById('resetBtn').addEventListener('click', resetDemoData);
-
-  // Demo & Print
-  document.getElementById('watchDemoBtn').addEventListener('click', startDemo);
-  document.getElementById('printBtn').addEventListener('click', () => window.print());
-
-  // Keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'n' || e.key === 'N') handleNewBooking();
-    if (e.key === '/' && !demoMode) document.getElementById('filterType').focus();
-    if (e.key === 't' || e.key === 'T') toggleView();
-    if (e.key === 'r' || e.key === 'R') resetDemoData();
-    if (e.key === 'd' || e.key === 'D') startDemo();
-    if ((e.ctrlKey || e.metaKey) && e.key === 'z') undoLastAction();
-    if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
-      e.preventDefault();
-      window.print();
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.warn('Could not save state to localStorage.', e);
     }
+  }
+
+  /* ---------------- Helpers ---------------- */
+
+  function formatDate(iso) {
+    const d = new Date(iso + 'T00:00:00');
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+  }
+
+  function generateId(prefix) {
+    return prefix + Date.now() + Math.floor(Math.random() * 1000);
+  }
+
+  function toast(message, type) {
+    const container = document.getElementById('toast-container');
+    const el = document.createElement('div');
+    el.className = 'toast' + (type ? ' toast-' + type : '');
+    el.textContent = message;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 3800);
+  }
+
+  function currentWeekStart() {
+    return core.isoDate(core.addDays(new Date(), weekOffset * 7));
+  }
+
+  /* ---------------- Rendering ---------------- */
+
+  function fullSchedule() {
+    // Always relative to *today*, independent of week navigation, so stats
+    // and the pressure/conflict panels stay stable while browsing weeks.
+    return core.buildSchedule(state.resources, state.bookings, core.todayIso(), 7);
+  }
+
+  function visibleResources() {
+    return state.resources.filter((r) => {
+      const matchesType = typeFilter === 'all' || r.type === typeFilter;
+      const matchesSearch = r.name.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesType && matchesSearch;
+    });
+  }
+
+  function renderAll() {
+    renderClock();
+    renderWeekLabel();
+    renderStats();
+    renderBoard();
+    renderConflictFeed();
+    renderBookingsList();
+    renderPressurePanel();
+    renderUtilization();
+    populateResourceDropdown();
+  }
+
+  function renderClock() {
+    const el = document.getElementById('live-clock');
+    const now = new Date();
+    el.textContent = now.toLocaleString('en-IN', {
+      weekday: 'short', month: 'short', day: '2-digit',
+      hour: '2-digit', minute: '2-digit',
+    });
+  }
+
+  function renderWeekLabel() {
+    const start = currentWeekStart();
+    const end = core.isoDate(core.addDays(new Date(start + 'T00:00:00'), 6));
+    document.getElementById('week-label').textContent =
+      weekOffset === 0 ? 'This Week' : `${formatDate(start)} – ${formatDate(end)}`;
+  }
+
+  function renderStats() {
+    const schedule = fullSchedule();
+    const conflictedResourceIds = new Set();
+    schedule.grid.forEach((row) => {
+      if (row.cells.some((c) => c.status === 'conflict')) conflictedResourceIds.add(row.resourceId);
+    });
+    const availableToday = schedule.grid.filter((row) => row.cells[0] && row.cells[0].status === 'available').length;
+
+    const stats = [
+      { label: 'Total Resources', value: state.resources.length, tone: 'neutral' },
+      { label: 'Total Bookings', value: state.bookings.length, tone: 'neutral' },
+      { label: 'Active Conflicts', value: conflictedResourceIds.size, tone: 'conflict' },
+      { label: 'Available Today', value: availableToday, tone: 'ok' },
+    ];
+
+    const bar = document.getElementById('stats-bar');
+    bar.innerHTML = stats
+      .map(
+        (s) => `
+      <div class="stat-box">
+        <div class="stat-value tone-${s.tone}">${s.value}</div>
+        <div class="stat-label">${s.label}</div>
+      </div>`
+      )
+      .join('');
+  }
+
+  function typeBadge(type) {
+    const labels = { driver: 'Driver', vehicle: 'Vehicle', guide: 'Guide', room: 'Room' };
+    return `<span class="type-badge ${type}">${labels[type] || type}</span>`;
+  }
+
+  function renderBoard() {
+    const container = document.getElementById('board-container');
+    const resources = visibleResources();
+    const schedule = core.buildSchedule(resources, state.bookings, currentWeekStart(), 7);
+
+    if (resources.length === 0) {
+      container.innerHTML = '<p class="feed-empty">No resources match the current search/filter.</p>';
+      return;
+    }
+
+    if (viewMode === 'grid') {
+      let html = '<table class="board-table"><thead><tr><th>Resource</th>';
+      schedule.dates.forEach((d) => (html += `<th>${formatDate(d)}</th>`));
+      html += '</tr></thead><tbody>';
+
+      schedule.grid.forEach((row) => {
+        html += `<tr><td class="resource-cell">${typeBadge(row.resourceType)} ${row.resourceName}</td>`;
+        row.cells.forEach((cell) => {
+          const label = cell.status === 'conflict' ? 'CONFLICT!' : cell.status === 'booked' ? 'BOOKED' : 'OPEN';
+          const tooltip = cell.bookings.map((b) => b.tripName).join(' | ');
+          const cellClass = cell.status === 'conflict' ? ' cell-conflict' : '';
+          html += `<td class="${cellClass}" title="${tooltip}"><span class="status-pill ${cell.status}">${label}</span></td>`;
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    } else {
+      // Timeline view: one row per resource, 7 day-segments per track.
+      let html = '';
+      schedule.grid.forEach((row) => {
+        html += `<div class="timeline-row">
+          <div class="timeline-label">${typeBadge(row.resourceType)} ${row.resourceName}</div>
+          <div class="timeline-track">`;
+        row.cells.forEach((cell, i) => {
+          if (cell.status === 'available') return;
+          const widthPct = 100 / row.cells.length;
+          const leftPct = widthPct * i;
+          const cls = cell.status === 'conflict' ? 'timeline-bar conflict' : 'timeline-bar';
+          const label = cell.bookings[0] ? cell.bookings[0].tripName : '';
+          html += `<div class="${cls}" style="left:${leftPct}%;width:${widthPct}%" title="${label}">${label}</div>`;
+        });
+        html += `</div></div>`;
+      });
+      container.innerHTML = html || '<p class="feed-empty">No bookings to show in timeline view.</p>';
+    }
+  }
+
+  function renderConflictFeed() {
+    const schedule = fullSchedule();
+    const feed = document.getElementById('conflict-feed');
+    const items = [];
+
+    schedule.grid.forEach((row) => {
+      row.cells.forEach((cell) => {
+        if (cell.status === 'conflict') {
+          const names = cell.bookings.map((b) => b.tripName).join(' vs. ');
+          items.push(`${formatDate(cell.date)} — ${row.resourceName}: ${names}`);
+        }
+      });
+    });
+
+    feed.innerHTML =
+      items.length === 0
+        ? '<p class="feed-empty">No conflicts detected in the next 7 days.</p>'
+        : items.map((t) => `<div class="feed-item">${t}</div>`).join('');
+  }
+
+  function renderBookingsList() {
+    const list = document.getElementById('bookings-list');
+    const sorted = [...state.bookings].sort((a, b) => a.startDate.localeCompare(b.startDate));
+
+    if (sorted.length === 0) {
+      list.innerHTML = '<p class="feed-empty">No bookings yet.</p>';
+      return;
+    }
+
+    list.innerHTML = sorted
+      .map((b) => {
+        const resource = state.resources.find((r) => r.id === b.resourceId);
+        const resourceName = resource ? resource.name : 'Unknown resource';
+        return `
+        <div class="booking-row">
+          <span><strong>${b.tripName}</strong> — ${resourceName} · ${formatDate(b.startDate)} to ${formatDate(b.endDate)}</span>
+          <button type="button" class="cancel-btn" data-booking-id="${b.id}">Cancel</button>
+        </div>`;
+      })
+      .join('');
+
+    list.querySelectorAll('.cancel-btn').forEach((btn) => {
+      btn.addEventListener('click', () => cancelBooking(btn.getAttribute('data-booking-id')));
+    });
+  }
+
+  function renderPressurePanel() {
+    const schedule = fullSchedule();
+    const days = core.computePressureDays(schedule);
+    const panel = document.getElementById('pressure-panel');
+
+    if (days.length === 0) {
+      panel.innerHTML = '<p class="pressure-empty">No high-demand days detected in the next 7 days.</p>';
+      return;
+    }
+
+    panel.innerHTML = days
+      .map(
+        (d) => `
+      <div class="pressure-day ${d.hasConflict ? 'conflict' : 'high'}">
+        <strong>${formatDate(d.date)}</strong> — ${d.bookedCount}/${d.total} resources booked
+        ${d.hasConflict ? ' · conflict present' : ''}
+      </div>`
+      )
+      .join('');
+  }
+
+  function populateResourceDropdown() {
+    const type = document.getElementById('form-type').value;
+    const select = document.getElementById('form-resource');
+    const matching = state.resources.filter((r) => r.type === type);
+    select.innerHTML = matching.map((r) => `<option value="${r.id}">${r.name}</option>`).join('');
+  }
+
+  function renderUtilization() {
+    const schedule = fullSchedule();
+    const util = core.computeUtilization(schedule);
+    const panel = document.getElementById('utilization-panel');
+
+    if (util.length === 0) {
+      panel.innerHTML = '<p class="feed-empty">No resources yet.</p>';
+      return;
+    }
+
+    panel.innerHTML = util
+      .map((u) => {
+        const fillClass = u.conflictDays > 0 ? 'util-fill high' : 'util-fill';
+        return `
+        <div class="util-row">
+          <span class="util-label">${typeBadge(u.resourceType)} ${u.resourceName}</span>
+          <span class="util-track"><span class="${fillClass}" style="width:${u.utilizationPct}%"></span></span>
+          <span class="util-pct">${u.utilizationPct}%</span>
+        </div>`;
+      })
+      .join('');
+  }
+
+  function handleExportCsv() {
+    if (state.bookings.length === 0) {
+      toast('No bookings to export yet.', 'error');
+      return;
+    }
+    const csv = core.bookingsToCsv(state.bookings, state.resources);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bookings-${core.todayIso()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('Bookings exported as CSV.', 'success');
+  }
+
+  /* ---------------- Guided tour ---------------- */
+
+  const TOUR_STEPS = [
+    { target: '[data-tour="stats"]', text: 'This shows a live count of total resources, total bookings, active conflicts, and what\u2019s available today.' },
+    { target: '[data-tour="toolbar"]', text: 'Search resources by name, filter by type, switch between Grid and Timeline views, and navigate week to week.' },
+    { target: '[data-tour="board"]', text: 'This is the live schedule board. Green means booked, white means available, red means a conflict was detected.' },
+    { target: '[data-tour="booking-form"]', text: 'Create a new booking here. If it clashes with an existing one, a conflict dialog opens automatically with a suggested alternative.' },
+    { target: '[data-tour="pressure"]', text: 'This panel flags upcoming high-demand days using a simple rule-based heuristic \u2014 not machine learning.' },
+    { target: '[data-tour="utilization"]', text: 'And here\u2019s how busy each resource is over the visible week, so you can spot under- or over-used resources at a glance.' },
+  ];
+  let tourStepIndex = 0;
+
+  function startTour() {
+    tourStepIndex = 0;
+    document.getElementById('tour-overlay').classList.remove('hidden');
+    showTourStep();
+  }
+
+  function endTour() {
+    document.getElementById('tour-overlay').classList.add('hidden');
+  }
+
+  function showTourStep() {
+    const step = TOUR_STEPS[tourStepIndex];
+    if (!step) {
+      endTour();
+      return;
+    }
+
+    const el = document.querySelector(step.target);
+    const spotlight = document.getElementById('tour-spotlight');
+    const tooltip = document.getElementById('tour-tooltip');
+    const text = document.getElementById('tour-text');
+    const nextBtn = document.getElementById('tour-next-btn');
+
+    text.textContent = step.text;
+    nextBtn.textContent = tourStepIndex === TOUR_STEPS.length - 1 ? 'Finish' : 'Next';
+
+    if (!el) {
+      // Target not present (e.g. filtered out) — skip to next step safely.
+      tourStepIndex++;
+      showTourStep();
+      return;
+    }
+
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+
+    // Give the smooth-scroll a moment to settle before measuring position.
+    setTimeout(() => {
+      const rect = el.getBoundingClientRect();
+      const pad = 6;
+      spotlight.style.top = `${rect.top - pad}px`;
+      spotlight.style.left = `${rect.left - pad}px`;
+      spotlight.style.width = `${rect.width + pad * 2}px`;
+      spotlight.style.height = `${rect.height + pad * 2}px`;
+
+      let tooltipTop = rect.bottom + 14;
+      let tooltipLeft = rect.left;
+      if (tooltipLeft + 260 > window.innerWidth) tooltipLeft = window.innerWidth - 280;
+      if (tooltipTop + 140 > window.innerHeight) tooltipTop = rect.top - 150;
+
+      tooltip.style.top = `${tooltipTop}px`;
+      tooltip.style.left = `${tooltipLeft}px`;
+    }, 200);
+  }
+
+  function wireTour() {
+    document.getElementById('watch-demo-btn').addEventListener('click', startTour);
+    document.getElementById('tour-skip-btn').addEventListener('click', endTour);
+    document.getElementById('tour-next-btn').addEventListener('click', () => {
+      tourStepIndex++;
+      showTourStep();
+    });
+  }
+
+
+
+  function handleBookingSubmit(e) {
+    e.preventDefault();
+    const feedback = document.getElementById('form-feedback');
+    feedback.textContent = '';
+    feedback.className = 'form-feedback';
+
+    const resourceId = document.getElementById('form-resource').value;
+    const tripName = document.getElementById('form-trip').value.trim();
+    const customer = document.getElementById('form-customer').value.trim();
+    const startDate = document.getElementById('form-start').value;
+    const endDate = document.getElementById('form-end').value;
+
+    if (!resourceId) {
+      showFormError('Add a resource of this type first.');
+      return;
+    }
+    if (!tripName || !customer) {
+      showFormError('Trip name and customer are required.');
+      return;
+    }
+
+    const dateCheck = core.validateBookingDates(startDate, endDate);
+    if (!dateCheck.valid) {
+      showFormError(dateCheck.message);
+      return;
+    }
+
+    const conflicts = core.findConflicts(state.bookings, resourceId, startDate, endDate, null);
+
+    if (conflicts.length === 0) {
+      commitBooking({ resourceId, tripName, customer, startDate, endDate });
+      showFormSuccess('Booking confirmed — no clash detected.');
+      return;
+    }
+
+    // Conflict path: open modal, let the user choose how to resolve it.
+    const resource = state.resources.find((r) => r.id === resourceId);
+    pendingBooking = { resourceId, tripName, customer, startDate, endDate, resourceType: resource.type };
+    openConflictModal(conflicts, resource);
+  }
+
+  function showFormError(message) {
+    const feedback = document.getElementById('form-feedback');
+    feedback.textContent = message;
+    feedback.className = 'form-feedback form-feedback-error';
+    toast(message, 'error');
+  }
+
+  function showFormSuccess(message) {
+    const feedback = document.getElementById('form-feedback');
+    feedback.textContent = message;
+    feedback.className = 'form-feedback form-feedback-success';
+    toast(message, 'success');
+  }
+
+  function commitBooking(data) {
+    const booking = {
+      id: generateId('b'),
+      resourceId: data.resourceId,
+      tripName: data.tripName,
+      customer: data.customer,
+      startDate: data.startDate,
+      endDate: data.endDate,
+    };
+    state.bookings.push(booking);
+    undoStack.push({ action: 'add-booking', bookingId: booking.id });
+    saveState();
+    renderAll();
+
+    document.getElementById('form-trip').value = '';
+    document.getElementById('form-customer').value = '';
+  }
+
+  function cancelBooking(id) {
+    const idx = state.bookings.findIndex((b) => b.id === id);
+    if (idx === -1) return;
+    const [removed] = state.bookings.splice(idx, 1);
+    undoStack.push({ action: 'delete-booking', booking: removed });
+    saveState();
+    renderAll();
+    toast('Booking cancelled.', 'success');
+  }
+
+  /* ---------------- Conflict modal ---------------- */
+
+  function openConflictModal(conflicts, resource) {
+    const modal = document.getElementById('conflict-modal');
+    const message = document.getElementById('modal-message');
+    const suggestionEl = document.getElementById('modal-suggestion');
+    const switchBtn = document.getElementById('modal-switch-btn');
+
+    const conflictNames = conflicts.map((c) => c.tripName).join(', ');
+    message.textContent = `${resource.name} is already booked for: ${conflictNames}.`;
+
+    const suggestions = core.suggestAlternatives(
+      state.resources,
+      state.bookings,
+      pendingBooking.resourceType,
+      pendingBooking.startDate,
+      pendingBooking.endDate,
+      pendingBooking.resourceId
+    );
+
+    if (suggestions.length > 0) {
+      suggestionEl.textContent = `Suggested alternative: ${suggestions[0].name}${
+        suggestions.length > 1 ? ` (+${suggestions.length - 1} more available)` : ''
+      }`;
+      switchBtn.disabled = false;
+      switchBtn.dataset.suggestedId = suggestions[0].id;
+    } else {
+      suggestionEl.textContent = 'No alternative resource is currently free for these dates.';
+      switchBtn.disabled = true;
+      delete switchBtn.dataset.suggestedId;
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeConflictModal() {
+    document.getElementById('conflict-modal').classList.add('hidden');
+    pendingBooking = null;
+  }
+
+  function handleModalSwitch() {
+    const switchBtn = document.getElementById('modal-switch-btn');
+    const suggestedId = switchBtn.dataset.suggestedId;
+    if (!suggestedId || !pendingBooking) return;
+    commitBooking({ ...pendingBooking, resourceId: suggestedId });
+    showFormSuccess('Booked with the suggested alternative resource.');
+    closeConflictModal();
+  }
+
+  function handleModalForce() {
+    if (!pendingBooking) return;
+    commitBooking(pendingBooking);
+    showFormError('Booked anyway — this resource now has a conflict.');
+    closeConflictModal();
+  }
+
+  /* ---------------- Add resource ---------------- */
+
+  function handleResourceSubmit(e) {
+    e.preventDefault();
+    const type = document.getElementById('new-resource-type').value;
+    const name = document.getElementById('new-resource-name').value.trim();
+    if (!name) return;
+
+    const resource = { id: generateId('r'), type, name };
+    state.resources.push(resource);
+    undoStack.push({ action: 'add-resource', resourceId: resource.id });
+    saveState();
+    renderAll();
+    document.getElementById('new-resource-name').value = '';
+    toast(`Added resource: ${name}`, 'success');
+  }
+
+  /* ---------------- Reset ---------------- */
+
+  function handleReset() {
+    if (!confirm('Reset all data back to the seeded demo state? This cannot be undone.')) return;
+    state = buildSeedData();
+    undoStack = [];
+    saveState();
+    renderAll();
+    toast('Demo data reset.', 'success');
+  }
+
+  /* ---------------- Undo ---------------- */
+
+  function undo() {
+    const last = undoStack.pop();
+    if (!last) {
+      toast('Nothing to undo.', 'error');
+      return;
+    }
+
+    if (last.action === 'add-booking') {
+      state.bookings = state.bookings.filter((b) => b.id !== last.bookingId);
+    } else if (last.action === 'delete-booking') {
+      state.bookings.push(last.booking);
+    } else if (last.action === 'add-resource') {
+      state.resources = state.resources.filter((r) => r.id !== last.resourceId);
+    }
+
+    saveState();
+    renderAll();
+    toast('Undone.', 'success');
+  }
+
+  /* ---------------- Search / filter / view / week nav ---------------- */
+
+  function wireToolbar() {
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      renderBoard();
+    });
+
+    document.getElementById('type-filter').addEventListener('change', (e) => {
+      typeFilter = e.target.value;
+      renderBoard();
+    });
+
+    document.getElementById('view-grid-btn').addEventListener('click', () => setView('grid'));
+    document.getElementById('view-timeline-btn').addEventListener('click', () => setView('timeline'));
+
+    document.getElementById('prev-week-btn').addEventListener('click', () => {
+      weekOffset -= 1;
+      renderWeekLabel();
+      renderBoard();
+    });
+    document.getElementById('next-week-btn').addEventListener('click', () => {
+      weekOffset += 1;
+      renderWeekLabel();
+      renderBoard();
+    });
+
+    document.getElementById('print-btn').addEventListener('click', () => window.print());
+  }
+
+  function setView(mode) {
+    viewMode = mode;
+    document.getElementById('view-grid-btn').classList.toggle('active', mode === 'grid');
+    document.getElementById('view-timeline-btn').classList.toggle('active', mode === 'timeline');
+    renderBoard();
+  }
+
+  /* ---------------- Keyboard shortcuts ---------------- */
+
+  function handleKeydown(e) {
+    const isTyping = ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName);
+
     if (e.key === 'Escape') {
       closeConflictModal();
-      closeDemoModal();
+      endTour();
+      return;
     }
-  });
-}
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+      e.preventDefault();
+      undo();
+      return;
+    }
+    if (isTyping) return; // let the browser handle normal typing/select otherwise
 
-function handleBookingSubmit(e) {
-  e.preventDefault();
-
-  const type = document.getElementById('bookingType').value;
-  const resource = document.getElementById('bookingResource').value;
-  const trip = document.getElementById('bookingTrip').value;
-  const customer = document.getElementById('bookingCustomer').value;
-  const start = document.getElementById('bookingStart').value;
-  const end = document.getElementById('bookingEnd').value;
-
-  // Validate dates
-  const validation = validateDates(start, end);
-  if (!validation.valid) {
-    alert(validation.error);
-    return;
+    if (e.key === '/') {
+      e.preventDefault();
+      document.getElementById('search-input').focus();
+    } else if (e.key.toLowerCase() === 'n') {
+      e.preventDefault();
+      document.getElementById('form-trip').focus();
+    } else if (e.key.toLowerCase() === 't') {
+      e.preventDefault();
+      setView(viewMode === 'grid' ? 'timeline' : 'grid');
+    } else if (e.key.toLowerCase() === 'r') {
+      e.preventDefault();
+      handleReset();
+    }
   }
 
-  // Check for conflict
-  const resourceId = `${type}: ${resource}`;
-  const conflict = checkConflict(resourceId, start, end);
+  /* ---------------- Init ---------------- */
 
-  if (conflict.hasConflict) {
-    // Show conflict modal
-    showConflictModal({
-      resourceId,
-      trip,
-      customer,
-      start,
-      end,
-      type,
-      resource,
-      conflict: conflict.conflict,
-      alternatives: conflict.alternatives
+  function setDefaultDates() {
+    const today = core.todayIso();
+    document.getElementById('form-start').min = today;
+    document.getElementById('form-end').min = today;
+    document.getElementById('form-start').value = today;
+    document.getElementById('form-end').value = today;
+  }
+
+  function init() {
+    document.getElementById('booking-form').addEventListener('submit', handleBookingSubmit);
+    document.getElementById('resource-form').addEventListener('submit', handleResourceSubmit);
+    document.getElementById('form-type').addEventListener('change', populateResourceDropdown);
+    document.getElementById('reset-btn').addEventListener('click', handleReset);
+
+    document.getElementById('modal-switch-btn').addEventListener('click', handleModalSwitch);
+    document.getElementById('modal-force-btn').addEventListener('click', handleModalForce);
+    document.getElementById('modal-cancel-btn').addEventListener('click', closeConflictModal);
+
+    document.getElementById('form-start').addEventListener('change', () => {
+      const start = document.getElementById('form-start').value;
+      const endInput = document.getElementById('form-end');
+      const today = core.todayIso();
+      endInput.min = start && start > today ? start : today;
     });
-  } else {
-    // Create booking
-    const booking = {
-      id: generateId(),
-      type,
-      resource: resourceId,
-      trip,
-      customer,
-      start,
-      end,
-      status: 'CONFIRMED',
-      createdAt: new Date().toISOString()
-    };
 
-    state.bookings.push(booking);
-    saveState();
-    renderBoard();
-    updateStats();
-    addToFeed(`Booking created: ${trip} with ${resourceId}`, 'booking');
-    document.getElementById('bookingForm').reset();
-  }
-}
+    wireToolbar();
+    wireTour();
+    document.getElementById('export-csv-btn').addEventListener('click', handleExportCsv);
+    document.addEventListener('keydown', handleKeydown);
 
-function handleResourceSubmit(e) {
-  e.preventDefault();
-
-  const type = document.getElementById('resourceType').value;
-  const name = document.getElementById('resourceName').value;
-  const hotelName = document.getElementById('hotelName').value || '';
-  const roomNumber = document.getElementById('roomNumber').value || '';
-  const roomType = document.getElementById('roomType').value || '';
-
-  // Check for duplicates
-  const resourceId = `${type}: ${name}`;
-  if (state.resources.some(r => r.id.toLowerCase() === resourceId.toLowerCase())) {
-    alert('Resource already exists');
-    return;
+    setDefaultDates();
+    renderAll();
+    setInterval(renderClock, 30000);
   }
 
-  const resource = {
-    id: resourceId,
-    type,
-    name,
-    hotelName,
-    roomNumber,
-    roomType,
-    createdAt: new Date().toISOString()
-  };
-
-  state.resources.push(resource);
-  saveState();
-  updateStats();
-  addToFeed(`Resource added: ${resourceId}`, 'resource');
-  document.getElementById('resourceForm').reset();
-  document.getElementById('roomFields').style.display = 'none';
-}
-
-function showConflictModal(data) {
-  currentBooking = data;
-  const modal = document.getElementById('conflictModal');
-  const severity = calculateSeverity(data.conflict.length);
-
-  document.getElementById('conflictSeverity').className = `severity-badge severity-${severity.level}`;
-  document.getElementById('conflictSeverity').textContent = severity.label;
-
-  let html = `
-    <p><strong>Conflict detected for ${data.resourceId}</strong></p>
-    <p>Trip: ${data.trip}</p>
-    <p>Dates: ${data.start} to ${data.end}</p>
-    <p><strong>Overlapping bookings:</strong></p>
-    <ul style="margin-left: 20px; margin-top: 10px;">
-      ${data.conflict.map(b => `<li>${b.trip} (${b.start} to ${b.end})</li>`).join('')}
-    </ul>
-    ${data.alternatives.length > 0 ? `
-      <p style="margin-top: 12px;"><strong>Available alternatives:</strong></p>
-      <ul style="margin-left: 20px;">
-        ${data.alternatives.map(a => `<li>${a}</li>`).join('')}
-      </ul>
-    ` : '<p style="margin-top: 12px; color: #e85d5d;">No alternatives available</p>'}
-  `;
-
-  document.getElementById('conflictInfo').innerHTML = html;
-  modal.style.display = 'flex';
-}
-
-function switchResource() {
-  if (!currentBooking || currentBooking.alternatives.length === 0) return;
-
-  const alternative = currentBooking.alternatives[0];
-  const booking = {
-    id: generateId(),
-    type: currentBooking.type,
-    resource: alternative,
-    trip: currentBooking.trip,
-    customer: currentBooking.customer,
-    start: currentBooking.start,
-    end: currentBooking.end,
-    status: 'RESOLVED',
-    createdAt: new Date().toISOString()
-  };
-
-  state.bookings.push(booking);
-  saveState();
-  renderBoard();
-  updateStats();
-  addToFeed(`Conflict resolved: ${currentBooking.trip} switched to ${alternative}`, 'resolved');
-  closeConflictModal();
-  document.getElementById('bookingForm').reset();
-}
-
-function closeConflictModal() {
-  document.getElementById('conflictModal').style.display = 'none';
-  currentBooking = null;
-}
-
-function renderBoard() {
-  const board = document.getElementById('scheduleBoard');
-  const board_class = currentView === 'grid' ? 'grid-view' : 'timeline-view';
-
-  // Update date range display
-  const start = currentDateRange.start;
-  const end = currentDateRange.end;
-  document.getElementById('dateRange').textContent = `${formatDate(start)} - ${formatDate(end)}`;
-
-  // Get filtered resources
-  let resources = state.resources;
-  if (currentFilter) {
-    resources = resources.filter(r => r.type === currentFilter);
-  }
-
-  // Generate booking cards
-  let html = '';
-  resources.forEach(resource => {
-    const bookingsForResource = state.bookings.filter(b => b.resource === resource.id);
-
-    bookingsForResource.forEach(booking => {
-      const bookingStart = new Date(booking.start);
-      const bookingEnd = new Date(booking.end);
-
-      // Check if booking is within range
-      if (bookingStart <= end && bookingEnd >= start) {
-        const statusClass = `status-${booking.status.toLowerCase()}`;
-        const cardClass = `booking-card ${booking.status === 'CONFLICT' ? 'conflict' : booking.status === 'RESOLVED' ? 'resolved' : ''}`;
-
-        html += `
-          <div class="${cardClass}">
-            <h4>${booking.trip}</h4>
-            <p><strong>${resource.id}</strong></p>
-            <p>Customer: ${booking.customer}</p>
-            <p>${booking.start} to ${booking.end}</p>
-            <span class="booking-status ${statusClass}">${booking.status}</span>
-          </div>
-        `;
-      }
-    });
-  });
-
-  if (!html) {
-    html = '<p style="grid-column: 1/-1; text-align: center; color: #666; padding: 40px;">No bookings in this period</p>';
-  }
-
-  board.className = `schedule-board ${board_class}`;
-  board.innerHTML = html;
-}
-
-function updateStats() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const bookings = state.bookings;
-  const conflicts = bookings.filter(b => b.status === 'CONFLICT');
-  const resolved = bookings.filter(b => b.status === 'RESOLVED');
-  const active = bookings.filter(b => {
-    const bookingDate = new Date(b.start);
-    return b.status === 'CONFIRMED' && bookingDate >= today;
-  });
-
-  document.getElementById('statBookings').textContent = bookings.length;
-  document.getElementById('statActive').textContent = active.length;
-  document.getElementById('statConflicts').textContent = conflicts.length;
-  document.getElementById('statResolved').textContent = resolved.length;
-  document.getElementById('statResources').textContent = state.resources.length;
-
-  // Utilization
-  const totalSlots = state.resources.length * 7;
-  const utilization = totalSlots > 0 ? Math.round((bookings.length / totalSlots) * 100) : 0;
-  document.getElementById('statUtilization').textContent = utilization + '%';
-
-  // Update feeds
-  updateConflictFeed();
-  updateBookingsList();
-}
-
-function updateConflictFeed() {
-  const feed = document.getElementById('conflictFeed');
-  const conflicts = state.bookings.filter(b => b.status === 'CONFLICT');
-
-  if (conflicts.length === 0) {
-    feed.innerHTML = '<div class="feed-item">No conflicts detected</div>';
-    return;
-  }
-
-  feed.innerHTML = conflicts.map(c => `
-    <div class="feed-item conflict">
-      <strong>${c.trip}</strong>
-      <p>${c.resource} - ${c.start} to ${c.end}</p>
-      <div class="feed-time">${new Date(c.createdAt).toLocaleTimeString()}</div>
-    </div>
-  `).join('');
-}
-
-function updateBookingsList() {
-  const list = document.getElementById('bookingsList');
-  const bookings = state.bookings.slice(-10).reverse();
-
-  if (bookings.length === 0) {
-    list.innerHTML = '<div class="feed-item">No bookings yet</div>';
-    return;
-  }
-
-  list.innerHTML = bookings.map(b => `
-    <div class="feed-item">
-      <strong>${b.trip}</strong>
-      <p>${b.resource} - ${b.start} to ${b.end}</p>
-      <div class="feed-time">${new Date(b.createdAt).toLocaleTimeString()}</div>
-    </div>
-  `).join('');
-}
-
-function addToFeed(message, type) {
-  updateStats();
-}
-
-function checkConflict(resourceId, start, end) {
-  const conflictingBookings = state.bookings.filter(b => {
-    if (b.resource !== resourceId) return false;
-    const bStart = new Date(b.start);
-    const bEnd = new Date(b.end);
-    const newStart = new Date(start);
-    const newEnd = new Date(end);
-    return !(newEnd <= bStart || newStart >= bEnd);
-  });
-
-  if (conflictingBookings.length > 0) {
-    const resourceType = resourceId.split(':')[0];
-    const alternatives = state.resources
-      .filter(r => r.type === resourceType && r.id !== resourceId)
-      .filter(r => {
-        return !state.bookings.some(b => {
-          const bStart = new Date(b.start);
-          const bEnd = new Date(b.end);
-          const newStart = new Date(start);
-          const newEnd = new Date(end);
-          return b.resource === r.id && !(newEnd <= bStart || newStart >= bEnd);
-        });
-      })
-      .map(r => r.id);
-
-    return {
-      hasConflict: true,
-      conflict: conflictingBookings,
-      alternatives
-    };
-  }
-
-  return { hasConflict: false, conflict: [], alternatives: [] };
-}
-
-function calculateSeverity(conflictCount) {
-  if (conflictCount >= 3) return { level: 'critical', label: 'CRITICAL' };
-  if (conflictCount >= 2) return { level: 'high', label: 'HIGH' };
-  return { level: 'medium', label: 'MEDIUM' };
-}
-
-function resetDemoData() {
-  if (!confirm('Reset all demo data?')) return;
-  state = structuredClone(INITIAL_STATE);
-  saveState();
-  renderBoard();
-  updateStats();
-  document.getElementById('bookingForm').reset();
-}
-
-function startDemo() {
-  demoMode = true;
-  demoStep = 0;
-  document.getElementById('demoModal').style.display = 'flex';
-  showDemoStep();
-}
-
-function showDemoStep() {
-  const step = DEMO_STEPS[demoStep];
-  if (!step) {
-    closeDemoModal();
-    return;
-  }
-
-  document.getElementById('demoText').textContent = step.text;
-  document.getElementById('demoProgressBar').style.width = ((demoStep + 1) / DEMO_STEPS.length * 100) + '%';
-  step.action();
-}
-
-function nextDemoStep() {
-  demoStep++;
-  if (demoStep >= DEMO_STEPS.length) {
-    closeDemoModal();
-    return;
-  }
-  showDemoStep();
-}
-
-function closeDemoModal() {
-  document.getElementById('demoModal').style.display = 'none';
-  demoMode = false;
-  demoStep = 0;
-  document.getElementById('bookingForm').reset();
-}
-
-function toggleView() {
-  currentView = currentView === 'grid' ? 'timeline' : 'grid';
-  document.getElementById('gridViewBtn').classList.toggle('active');
-  document.getElementById('timelineViewBtn').classList.toggle('active');
-  renderBoard();
-}
-
-function undoLastAction() {
-  console.log('Undo not yet implemented');
-}
-
-function handleNewBooking() {
-  document.getElementById('bookingForm').focus();
-}
-
-function generateId() {
-  return 'booking_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
-
-function formatDate(date) {
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-
-function loadInitialData() {
-  loadState();
-}
+  document.addEventListener('DOMContentLoaded', init);
+})();
