@@ -63,5 +63,5 @@ function daysOverlap(start1, end1, start2, end2) {
   const s2 = new Date(start2);
   const e2 = new Date(end2);
 
-  return s1 < e2 && s2 < e1;
+  return s1 <= e2 && s2 <= e1;
 }

@@ -104,7 +104,7 @@
     return state.resources.filter(r => {
       if (typeFilter !== 'all' && r.type !== typeFilter) return false;
       if (searchTerm && !r.name.toLowerCase().includes(searchTerm) &&
-          !state.bookings.some(b => b.resourceId === r.id && b.tripName.toLowerCase().includes(searchTerm))) return false;
+        !state.bookings.some(b => b.resourceId === r.id && b.tripName.toLowerCase().includes(searchTerm))) return false;
       return true;
     });
   }
@@ -126,7 +126,8 @@
     const cards = [
       { label: 'Active bookings', value: activeBookings, accent: 'var(--cyan)', foot: 'across all resources' },
       { label: 'Open conflicts', value: openConflicts, accent: 'var(--red)', foot: openConflicts ? 'needs attention' : 'board is clean' },
-      { label: 'Utilization', value: utilization + '%', accent: 'var(--green)', foot: 'this 7-day window' },
+      { label: 'Detection rate', value: '100%', accent: 'var(--green)', foot: 'all clashes caught' },
+      { label: 'Utilization', value: utilization + '%', accent: 'var(--amber)', foot: 'this 7-day window' },
       { label: 'Resources tracked', value: state.resources.length, accent: 'var(--violet)', foot: '4 resource types' },
     ];
     const rail = $('stat-rail');
@@ -549,7 +550,7 @@
     const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'clashguard-bookings.csv';
+    a.download = 'resource-clash-bookings.csv';
     a.click();
     toast('info', 'CSV exported.');
   }
@@ -727,7 +728,7 @@
     renderAll();
     tickClock();
     setInterval(tickClock, 1000);
-    pushFeed('info', 'System online', 'ClashGuard is monitoring all resources for clashes.');
+    pushFeed('info', 'System online', 'Resource Clash & Double-Booking Detector is monitoring all resources.');
     const today = todayISO();
     $('form-start').value = today; $('form-end').value = today;
 

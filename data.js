@@ -1,5 +1,5 @@
 /**
- * CLASHGUARD — seed / demo data
+ * Resource Clash & Double-Booking Detector — seed / demo data
  * Dates are generated relative to "today" at load time so the seeded
  * clashes are always visible in the current week, no matter when this
  * is opened.

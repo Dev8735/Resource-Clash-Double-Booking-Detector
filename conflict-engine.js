@@ -9,8 +9,8 @@ function detectConflict(newStart, newEnd, resource, allBookings) {
     const existingStart = new Date(booking.start);
     const existingEnd = new Date(booking.end);
 
-    // Two date ranges conflict if: start1 < end2 AND start2 < end1
-    return newStartDate < existingEnd && newEndDate > existingStart;
+    // Two date ranges conflict if: start1 <= end2 AND start2 <= end1 (inclusive)
+    return newStartDate <= existingEnd && newEndDate >= existingStart;
   });
 
   return {
@@ -40,7 +40,7 @@ function findAlternatives(resourceType, start, end, excludeResource, allResource
       const newStart = new Date(start);
       const newEnd = new Date(end);
 
-      return newStart < bookingEnd && newEnd > bookingStart;
+      return newStart <= bookingEnd && newEnd >= bookingStart;
     });
 
     if (!hasConflict) {
@@ -59,7 +59,7 @@ function isAvailable(resourceId, start, end, allBookings) {
     const newStart = new Date(start);
     const newEnd = new Date(end);
 
-    return newStart < bookingEnd && newEnd > bookingStart;
+    return newStart <= bookingEnd && newEnd >= bookingStart;
   });
 }
 

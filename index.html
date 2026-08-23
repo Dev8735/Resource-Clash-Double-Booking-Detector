@@ -1,210 +1,274 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>CLASHGUARD — Resource Clash &amp; Double-Booking Detector</title>
-<meta name="description" content="ClashGuard checks every driver, vehicle, guide, and room booking the instant it's entered — catching double-bookings before they reach the day of the trip." />
-<link rel="icon" href="data:," />
-<link rel="stylesheet" href="style.css" />
-<link rel="stylesheet" href="landing.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resource Clash & Double-Booking Detector</title>
+  <meta name="description"
+    content="Resource Clash & Double-Booking Detector checks every driver, vehicle, guide, and room booking the instant it's entered — catching double-bookings before they reach the day of the trip." />
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="landing.css" />
 </head>
+
 <body>
 
-<nav class="lp-nav">
-  <div class="lp-nav-brand">
-    <div class="mark" style="width:32px;height:32px;">
-      <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M12 3.2l6.5 2.6v5c0 4.4-2.7 7.9-6.5 9.9-3.8-2-6.5-5.5-6.5-9.9v-5L12 3.2z" stroke="#04141a" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.7 12.4l2.2 2.2 4.4-4.8" stroke="#04141a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <nav class="lp-nav">
+    <div class="lp-nav-brand">
+      <div class="mark" style="width:32px;height:32px;">
+        <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+          <path d="M12 3.2l6.5 2.6v5c0 4.4-2.7 7.9-6.5 9.9-3.8-2-6.5-5.5-6.5-9.9v-5L12 3.2z" stroke="#04141a"
+            stroke-width="1.8" stroke-linejoin="round" />
+          <path d="M8.7 12.4l2.2 2.2 4.4-4.8" stroke="#04141a" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+      </div>
+      <span
+        style="font-family:var(--font-display);font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:14px;">Resource
+        Clash & Double-Booking Detector</span>
     </div>
-    <span style="font-family:var(--font-display);font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:17px;">ClashGuard</span>
-  </div>
-  <div class="lp-nav-links">
-    <a href="#problem">Problem</a>
-    <a href="#solution">Solution</a>
-    <a href="#features">Features</a>
-    <a href="#roadmap">Roadmap</a>
-  </div>
-  <div class="lp-nav-cta">
-    <a href="https://github.com/Dev8735/Resource-Clash-Double-Booking-Detector" class="lp-btn lp-btn-ghost" target="_blank" rel="noopener">GitHub</a>
-    <a href="app.html" class="lp-btn lp-btn-primary">Launch live demo →</a>
-  </div>
-</nav>
+    <div class="lp-nav-links">
+      <a href="#problem">Problem</a>
+      <a href="#solution">Solution</a>
+      <a href="#features">Features</a>
+      <a href="#roadmap">Roadmap</a>
+    </div>
+    <div class="lp-nav-cta">
+      <a href="https://github.com/Dev8735/Resource-Clash-Double-Booking-Detector" class="lp-btn lp-btn-ghost"
+        target="_blank" rel="noopener">GitHub</a>
+      <a href="app.html" class="lp-btn lp-btn-primary">Launch live demo →</a>
+    </div>
+  </nav>
 
-<header class="lp-hero">
-  <div class="lp-hero-copy">
-    <span class="lp-eyebrow"><span class="pulse"></span> Travel &amp; Hospitality Hackathon · Solo build</span>
-    <h1>Stop finding the<br/>double-booking<br/><em>on the day of the trip.</em></h1>
-    <p class="lead">ClashGuard checks every driver, vehicle, guide, and hotel room booking against the schedule the instant it's entered — and if two trips collide, it tells your team exactly what clashed and hands them a free alternative in one click.</p>
-    <div class="lp-hero-actions">
+  <header class="lp-hero">
+    <div class="lp-hero-copy">
+      <span class="lp-eyebrow"><span class="pulse"></span> Travel &amp; Hospitality Hackathon · Solo build</span>
+      <h1>Stop finding the<br />double-booking<br /><em>on the day of the trip.</em></h1>
+      <p class="lead">Resource Clash & Double-Booking Detector checks every driver, vehicle, guide, and hotel room
+        booking against the schedule the instant it's entered — and if two trips collide, it tells your team exactly
+        what clashed and hands them a free alternative in one click.</p>
+      <div class="lp-hero-actions">
+        <a href="app.html" class="lp-btn lp-btn-primary lp-btn-lg">Launch live demo →</a>
+        <a href="app.html?tour=1" class="lp-btn lp-btn-ghost lp-btn-lg">Take the guided tour</a>
+      </div>
+      <div class="lp-hero-meta">
+        <span><i></i> Zero build step</span>
+        <span><i></i> No backend, no accounts</span>
+        <span><i></i> Live in your browser now</span>
+      </div>
+    </div>
+
+    <div class="lp-board-mock" aria-hidden="true">
+      <div class="lp-board-mock-head">
+        <b>Live schedule board</b>
+        <span class="lp-mock-siren"><i></i>1 clash live</span>
+      </div>
+
+      <div class="lp-mock-row">
+        <div class="lp-mock-label"><span class="lp-mock-chip"
+            style="background:#2dd4ea33;border:1px solid #2dd4ea;"></span>Ramesh Y.</div>
+        <div class="lp-mock-cell c"></div>
+        <div class="lp-mock-cell c"></div>
+        <div class="lp-mock-cell"></div>
+        <div class="lp-mock-cell"></div>
+        <div class="lp-mock-cell"></div>
+      </div>
+      <div class="lp-mock-row">
+        <div class="lp-mock-label"><span class="lp-mock-chip"
+            style="background:#2dd4ea33;border:1px solid #2dd4ea;"></span>Suresh P.</div>
+        <div class="lp-mock-cell b"></div>
+        <div class="lp-mock-cell b"></div>
+        <div class="lp-mock-cell b"></div>
+        <div class="lp-mock-cell"></div>
+        <div class="lp-mock-cell"></div>
+      </div>
+      <div class="lp-mock-row">
+        <div class="lp-mock-label"><span class="lp-mock-chip"
+            style="background:#34d39933;border:1px solid #34d399;"></span>MH-04-1121</div>
+        <div class="lp-mock-cell c"></div>
+        <div class="lp-mock-cell c"></div>
+        <div class="lp-mock-cell"></div>
+        <div class="lp-mock-cell"></div>
+        <div class="lp-mock-cell"></div>
+      </div>
+      <div class="lp-mock-row">
+        <div class="lp-mock-label"><span class="lp-mock-chip"
+            style="background:#8b7cf633;border:1px solid #8b7cf6;"></span>Priya Nair</div>
+        <div class="lp-mock-cell"></div>
+        <div class="lp-mock-cell b"></div>
+        <div class="lp-mock-cell"></div>
+        <div class="lp-mock-cell"></div>
+        <div class="lp-mock-cell"></div>
+      </div>
+      <div class="lp-mock-row">
+        <div class="lp-mock-label"><span class="lp-mock-chip"
+            style="background:#ffb02033;border:1px solid #ffb020;"></span>Room 204</div>
+        <div class="lp-mock-cell b"></div>
+        <div class="lp-mock-cell b"></div>
+        <div class="lp-mock-cell b"></div>
+        <div class="lp-mock-cell"></div>
+        <div class="lp-mock-cell"></div>
+      </div>
+
+      <div class="lp-mock-foot">Suggested fix: <b>switch to Suresh Patil</b> — free for both dates.</div>
+    </div>
+  </header>
+
+  <section class="lp-section" id="problem">
+    <div class="lp-problem">
+      <div>
+        <h2 class="lp-h2">Spreadsheets don't warn you.</h2>
+        <p class="lp-body-text">Travel agency ops teams still track driver, vehicle, guide, and room schedules in
+          spreadsheets or paper registers. Nothing checks a new booking against what's already on the books — so the
+          same driver or vehicle gets assigned to two trips on the same day, and nobody notices until someone's standing
+          at the pickup point with no ride.</p>
+        <ul class="lp-pain-list">
+          <li><b>01</b> Clashes are discovered the day of the trip, not the day they're booked.</li>
+          <li><b>02</b> Re-checking the whole register by hand doesn't scale during peak season.</li>
+          <li><b>03</b> Finding a replacement driver or vehicle under pressure means more mistakes, not fewer.</li>
+        </ul>
+      </div>
+      <div class="lp-stat-quote">
+        <div class="big">2 clashes</div>
+        <p>are already live on the seeded demo board below — a driver and a vehicle both double-booked for the same trip
+          window. That's the exact scenario this tool exists to catch before it happens.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="lp-section tight" id="solution">
+    <h2 class="lp-h2">Checked the moment it's entered.</h2>
+    <p class="lp-body-text" style="max-width:640px;">Every booking runs through a straightforward date-range overlap
+      check against existing bookings for that same resource — no ML, no black box, just a rule anyone can audit.</p>
+
+    <div class="lp-flow">
+      <div class="lp-flow-step active">
+        <div class="lp-flow-num">01</div>
+        <h3>Staff enters a booking</h3>
+        <p>Resource type, resource, trip name, customer, and date range — the same fields a spreadsheet row would have.
+        </p>
+      </div>
+      <div class="lp-flow-step active">
+        <div class="lp-flow-num">02</div>
+        <h3>System checks it instantly</h3>
+        <p><code
+            style="font-family:var(--font-mono);font-size:12px;color:var(--cyan);">startA ≤ endB &amp;&amp; startB ≤ endA</code>
+          against every existing booking for that resource.</p>
+      </div>
+      <div class="lp-flow-step active">
+        <div class="lp-flow-num">03</div>
+        <h3>Confirmed, or alerted with a fix</h3>
+        <p>No clash → booked instantly. Clash → staff sees exactly what it collides with and a free alternative of the
+          same type.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="lp-section" id="features">
+    <h2 class="lp-h2">What's actually implemented</h2>
+    <p class="lp-body-text" style="max-width:640px;">Everything below is running in the live demo — not slideware.
+      Nothing here is claimed as done unless you can click it.</p>
+
+    <div class="lp-feature-grid">
+      <div class="lp-feature-card">
+        <div class="lp-feature-icon" style="background:var(--cyan-soft);color:var(--cyan);">◆</div>
+        <h3>Live clash-detection board</h3>
+        <p>Every resource against the coming week, color-coded Open / Booked / Conflict, filterable by type and
+          searchable by name or trip.</p>
+      </div>
+      <div class="lp-feature-card">
+        <div class="lp-feature-icon" style="background:var(--red-soft);color:var(--red);">⚠</div>
+        <h3>Conflict modal + suggestion</h3>
+        <p>Shows the exact colliding booking(s) and the nearest free alternative resource — switch, force-book, or
+          cancel in one click.</p>
+      </div>
+      <div class="lp-feature-card">
+        <div class="lp-feature-icon" style="background:var(--green-soft);color:var(--green);">▤</div>
+        <h3>Timeline view</h3>
+        <p>A Gantt-style week view per resource, for staff who think in bars on a calendar rather than a grid of cells.
+        </p>
+      </div>
+      <div class="lp-feature-card">
+        <div class="lp-feature-icon" style="background:var(--violet-soft);color:var(--violet);">⌘</div>
+        <h3>Command palette</h3>
+        <p><kbd>⌘K</kbd> for instant search across every action — filter, export, jump weeks, undo, print — without
+          touching a menu.</p>
+      </div>
+      <div class="lp-feature-card">
+        <div class="lp-feature-icon" style="background:var(--amber-soft);color:var(--amber);">▦</div>
+        <h3>Analytics panel</h3>
+        <p>Bookings by resource type, utilization by type, and a clash trend line for the visible window — all live, no
+          ML.</p>
+      </div>
+      <div class="lp-feature-card">
+        <div class="lp-feature-icon" style="background:var(--cyan-soft);color:var(--cyan);">↺</div>
+        <h3>Undo, export, print</h3>
+        <p>Full undo stack for every change, one-click CSV export, and a print-ready stylesheet for the schedule board.
+        </p>
+      </div>
+    </div>
+
+    <div class="lp-tech-strip">
+      <span class="lp-tech-badge">HTML5</span>
+      <span class="lp-tech-badge">CSS3 — no framework</span>
+      <span class="lp-tech-badge">Vanilla JavaScript (ES6+)</span>
+      <span class="lp-tech-badge">Browser localStorage</span>
+      <span class="lp-tech-badge">GitHub Pages</span>
+      <span class="lp-tech-badge">Zero runtime dependencies</span>
+    </div>
+  </section>
+
+  <section class="lp-section tight" id="roadmap">
+    <h2 class="lp-h2">Prototype scope, on purpose</h2>
+    <p class="lp-body-text" style="max-width:640px;">This is a hackathon prototype — client-side only, single browser
+      session, seeded demo data. That's a deliberate choice to keep it a self-contained static site with zero hosting
+      risk before judging, not a limitation we're hiding.</p>
+    <div class="lp-roadmap">
+      <div class="lp-roadmap-item">
+        <span class="lp-roadmap-tag">Next</span>
+        <div class="lp-roadmap-body"><b>Real backend</b><span>Node/Express + Postgres so multiple staff see the same
+            live board.</span></div>
+      </div>
+      <div class="lp-roadmap-item">
+        <span class="lp-roadmap-tag">Next</span>
+        <div class="lp-roadmap-body"><b>SMS / email / WhatsApp alerts</b><span>Push clash and reassignment notices
+            straight to drivers, guides, and hotel partners.</span></div>
+      </div>
+      <div class="lp-roadmap-item">
+        <span class="lp-roadmap-tag">Future</span>
+        <div class="lp-roadmap-body"><b>Trained demand-forecasting model</b><span>Genuine ML on top of the current
+            rule-based pressure panel, clearly labelled when it ships.</span></div>
+      </div>
+      <div class="lp-roadmap-item">
+        <span class="lp-roadmap-tag">Future</span>
+        <div class="lp-roadmap-body"><b>Calendar sync + native apps</b><span>Two-way Google/Outlook sync per driver or
+            guide, plus Android/iOS clients.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lp-section">
+    <div class="lp-cta-banner">
+      <h2>See it catch a clash, live.</h2>
+      <p>The demo board loads with two real conflicts already on it — Driver Ramesh and Vehicle MH-04-1121, both
+        double-booked today. Zero clicks needed to see the core feature working.</p>
       <a href="app.html" class="lp-btn lp-btn-primary lp-btn-lg">Launch live demo →</a>
-      <a href="app.html?tour=1" class="lp-btn lp-btn-ghost lp-btn-lg">Take the guided tour</a>
     </div>
-    <div class="lp-hero-meta">
-      <span><i></i> Zero build step</span>
-      <span><i></i> No backend, no accounts</span>
-      <span><i></i> Live in your browser now</span>
-    </div>
-  </div>
+  </section>
 
-  <div class="lp-board-mock" aria-hidden="true">
-    <div class="lp-board-mock-head">
-      <b>Live schedule board</b>
-      <span class="lp-mock-siren"><i></i>1 clash live</span>
+  <footer class="lp-footer">
+    <div class="lp-footer-inner">
+      <p>Resource Clash & Double-Booking Detector — Travel &amp; Hospitality Hackathon, solo project by Dev Chokhawala.
+        No passwords, credentials, or API keys — all data is simulated demo data.</p>
+      <div class="lp-footer-links">
+        <a href="https://github.com/Dev8735/Resource-Clash-Double-Booking-Detector" target="_blank"
+          rel="noopener">GitHub repo</a>
+        <a href="app.html">Live demo</a>
+      </div>
     </div>
-
-    <div class="lp-mock-row">
-      <div class="lp-mock-label"><span class="lp-mock-chip" style="background:#2dd4ea33;border:1px solid #2dd4ea;"></span>Ramesh Y.</div>
-      <div class="lp-mock-cell c"></div><div class="lp-mock-cell c"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div>
-    </div>
-    <div class="lp-mock-row">
-      <div class="lp-mock-label"><span class="lp-mock-chip" style="background:#2dd4ea33;border:1px solid #2dd4ea;"></span>Suresh P.</div>
-      <div class="lp-mock-cell b"></div><div class="lp-mock-cell b"></div><div class="lp-mock-cell b"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div>
-    </div>
-    <div class="lp-mock-row">
-      <div class="lp-mock-label"><span class="lp-mock-chip" style="background:#34d39933;border:1px solid #34d399;"></span>MH-04-1121</div>
-      <div class="lp-mock-cell c"></div><div class="lp-mock-cell c"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div>
-    </div>
-    <div class="lp-mock-row">
-      <div class="lp-mock-label"><span class="lp-mock-chip" style="background:#8b7cf633;border:1px solid #8b7cf6;"></span>Priya Nair</div>
-      <div class="lp-mock-cell"></div><div class="lp-mock-cell b"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div>
-    </div>
-    <div class="lp-mock-row">
-      <div class="lp-mock-label"><span class="lp-mock-chip" style="background:#ffb02033;border:1px solid #ffb020;"></span>Room 204</div>
-      <div class="lp-mock-cell b"></div><div class="lp-mock-cell b"></div><div class="lp-mock-cell b"></div><div class="lp-mock-cell"></div><div class="lp-mock-cell"></div>
-    </div>
-
-    <div class="lp-mock-foot">Suggested fix: <b>switch to Suresh Patil</b> — free for both dates.</div>
-  </div>
-</header>
-
-<section class="lp-section" id="problem">
-  <div class="lp-problem">
-    <div>
-      <h2 class="lp-h2">Spreadsheets don't warn you.</h2>
-      <p class="lp-body-text">Travel agency ops teams still track driver, vehicle, guide, and room schedules in spreadsheets or paper registers. Nothing checks a new booking against what's already on the books — so the same driver or vehicle gets assigned to two trips on the same day, and nobody notices until someone's standing at the pickup point with no ride.</p>
-      <ul class="lp-pain-list">
-        <li><b>01</b> Clashes are discovered the day of the trip, not the day they're booked.</li>
-        <li><b>02</b> Re-checking the whole register by hand doesn't scale during peak season.</li>
-        <li><b>03</b> Finding a replacement driver or vehicle under pressure means more mistakes, not fewer.</li>
-      </ul>
-    </div>
-    <div class="lp-stat-quote">
-      <div class="big">2 clashes</div>
-      <p>are already live on the seeded demo board below — a driver and a vehicle both double-booked for the same trip window. That's the exact scenario this tool exists to catch before it happens.</p>
-    </div>
-  </div>
-</section>
-
-<section class="lp-section tight" id="solution">
-  <h2 class="lp-h2">Checked the moment it's entered.</h2>
-  <p class="lp-body-text" style="max-width:640px;">Every booking runs through a straightforward date-range overlap check against existing bookings for that same resource — no ML, no black box, just a rule anyone can audit.</p>
-
-  <div class="lp-flow">
-    <div class="lp-flow-step active">
-      <div class="lp-flow-num">01</div>
-      <h3>Staff enters a booking</h3>
-      <p>Resource type, resource, trip name, customer, and date range — the same fields a spreadsheet row would have.</p>
-    </div>
-    <div class="lp-flow-step active">
-      <div class="lp-flow-num">02</div>
-      <h3>ClashGuard checks it instantly</h3>
-      <p><code style="font-family:var(--font-mono);font-size:12px;color:var(--cyan);">startA ≤ endB &amp;&amp; startB ≤ endA</code> against every existing booking for that resource.</p>
-    </div>
-    <div class="lp-flow-step active">
-      <div class="lp-flow-num">03</div>
-      <h3>Confirmed, or alerted with a fix</h3>
-      <p>No clash → booked instantly. Clash → staff sees exactly what it collides with and a free alternative of the same type.</p>
-    </div>
-  </div>
-</section>
-
-<section class="lp-section" id="features">
-  <h2 class="lp-h2">What's actually implemented</h2>
-  <p class="lp-body-text" style="max-width:640px;">Everything below is running in the live demo — not slideware. Nothing here is claimed as done unless you can click it.</p>
-
-  <div class="lp-feature-grid">
-    <div class="lp-feature-card">
-      <div class="lp-feature-icon" style="background:var(--cyan-soft);color:var(--cyan);">◆</div>
-      <h3>Live clash-detection board</h3>
-      <p>Every resource against the coming week, color-coded Open / Booked / Conflict, filterable by type and searchable by name or trip.</p>
-    </div>
-    <div class="lp-feature-card">
-      <div class="lp-feature-icon" style="background:var(--red-soft);color:var(--red);">⚠</div>
-      <h3>Conflict modal + suggestion</h3>
-      <p>Shows the exact colliding booking(s) and the nearest free alternative resource — switch, force-book, or cancel in one click.</p>
-    </div>
-    <div class="lp-feature-card">
-      <div class="lp-feature-icon" style="background:var(--green-soft);color:var(--green);">▤</div>
-      <h3>Timeline view</h3>
-      <p>A Gantt-style week view per resource, for staff who think in bars on a calendar rather than a grid of cells.</p>
-    </div>
-    <div class="lp-feature-card">
-      <div class="lp-feature-icon" style="background:var(--violet-soft);color:var(--violet);">⌘</div>
-      <h3>Command palette</h3>
-      <p><kbd>⌘K</kbd> for instant search across every action — filter, export, jump weeks, undo, print — without touching a menu.</p>
-    </div>
-    <div class="lp-feature-card">
-      <div class="lp-feature-icon" style="background:var(--amber-soft);color:var(--amber);">▦</div>
-      <h3>Analytics panel</h3>
-      <p>Bookings by resource type, utilization by type, and a clash trend line for the visible window — all live, no ML.</p>
-    </div>
-    <div class="lp-feature-card">
-      <div class="lp-feature-icon" style="background:var(--cyan-soft);color:var(--cyan);">↺</div>
-      <h3>Undo, export, print</h3>
-      <p>Full undo stack for every change, one-click CSV export, and a print-ready stylesheet for the schedule board.</p>
-    </div>
-  </div>
-
-  <div class="lp-tech-strip">
-    <span class="lp-tech-badge">HTML5</span>
-    <span class="lp-tech-badge">CSS3 — no framework</span>
-    <span class="lp-tech-badge">Vanilla JavaScript (ES6+)</span>
-    <span class="lp-tech-badge">Browser localStorage</span>
-    <span class="lp-tech-badge">GitHub Pages</span>
-    <span class="lp-tech-badge">Zero runtime dependencies</span>
-  </div>
-</section>
-
-<section class="lp-section tight" id="roadmap">
-  <h2 class="lp-h2">Prototype scope, on purpose</h2>
-  <p class="lp-body-text" style="max-width:640px;">This is a hackathon prototype — client-side only, single browser session, seeded demo data. That's a deliberate choice to keep it a self-contained static site with zero hosting risk before judging, not a limitation we're hiding.</p>
-  <div class="lp-roadmap">
-    <div class="lp-roadmap-item">
-      <span class="lp-roadmap-tag">Next</span>
-      <div class="lp-roadmap-body"><b>Real backend</b><span>Node/Express + Postgres so multiple staff see the same live board.</span></div>
-    </div>
-    <div class="lp-roadmap-item">
-      <span class="lp-roadmap-tag">Next</span>
-      <div class="lp-roadmap-body"><b>SMS / email / WhatsApp alerts</b><span>Push clash and reassignment notices straight to drivers, guides, and hotel partners.</span></div>
-    </div>
-    <div class="lp-roadmap-item">
-      <span class="lp-roadmap-tag">Future</span>
-      <div class="lp-roadmap-body"><b>Trained demand-forecasting model</b><span>Genuine ML on top of the current rule-based pressure panel, clearly labelled when it ships.</span></div>
-    </div>
-    <div class="lp-roadmap-item">
-      <span class="lp-roadmap-tag">Future</span>
-      <div class="lp-roadmap-body"><b>Calendar sync + native apps</b><span>Two-way Google/Outlook sync per driver or guide, plus Android/iOS clients.</span></div>
-    </div>
-  </div>
-</section>
-
-<section class="lp-section">
-  <div class="lp-cta-banner">
-    <h2>See it catch a clash, live.</h2>
-    <p>The demo board loads with two real conflicts already on it — Driver Ramesh and Vehicle MH-04-1121, both double-booked today. Zero clicks needed to see the core feature working.</p>
-    <a href="app.html" class="lp-btn lp-btn-primary lp-btn-lg">Launch live demo →</a>
-  </div>
-</section>
-
-<footer class="lp-footer">
-  <div class="lp-footer-inner">
-    <p>ClashGuard — Travel &amp; Hospitality Hackathon, solo project by Dev Chokhawala. No passwords, credentials, or API keys — all data is simulated demo data.</p>
-    <div class="lp-footer-links">
-      <a href="https://github.com/Dev8735/Resource-Clash-Double-Booking-Detector" target="_blank" rel="noopener">GitHub repo</a>
-      <a href="app.html">Live demo</a>
-    </div>
-  </div>
-</footer>
+  </footer>
 
 </body>
+
 </html>
