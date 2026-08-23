@@ -549,7 +549,7 @@
     const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'dispatch-bookings.csv';
+    a.download = 'clashguard-bookings.csv';
     a.click();
     toast('info', 'CSV exported.');
   }
@@ -619,8 +619,8 @@
   const tourSteps = [
     { sel: '[data-tour="stats"]', text: 'Live counters — active bookings, open conflicts, utilization, and roster size, all updating in real time.' },
     { sel: '[data-tour="toolbar"]', text: 'Search, filter by resource type, switch between Board and Timeline, and page through weeks.' },
-    { sel: '[data-tour="board"]', text: 'The dispatch board. Each cell flips to show Open, Booked, or Conflict — a conflict means two bookings collide.' },
-    { sel: '[data-tour="booking-form"]', text: 'Book a resource here. If it clashes, DISPATCH shows exactly what it collides with and suggests a free alternative.' },
+    { sel: '[data-tour="board"]', text: 'The clash-detection board. Each cell flips to show Open, Booked, or Conflict — a conflict means two bookings collide.' },
+    { sel: '[data-tour="booking-form"]', text: 'Book a resource here. If it clashes, ClashGuard shows exactly what it collides with and suggests a free alternative.' },
     { sel: '[data-tour="pressure"]', text: 'A transparent, rule-based utilization heuristic per resource type — not a trained ML model.' },
   ];
   function startTour() {
@@ -727,7 +727,7 @@
     renderAll();
     tickClock();
     setInterval(tickClock, 1000);
-    pushFeed('info', 'System online', 'DISPATCH is monitoring all resources for clashes.');
+    pushFeed('info', 'System online', 'ClashGuard is monitoring all resources for clashes.');
     const today = todayISO();
     $('form-start').value = today; $('form-end').value = today;
 

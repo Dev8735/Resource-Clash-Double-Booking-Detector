@@ -1,5 +1,5 @@
 /**
- * DISPATCH — seed / demo data
+ * CLASHGUARD — seed / demo data
  * Dates are generated relative to "today" at load time so the seeded
  * clashes are always visible in the current week, no matter when this
  * is opened.
@@ -72,7 +72,7 @@ function buildSeedData() {
 
 function loadState() {
   try {
-    const raw = localStorage.getItem('dispatch_state_v1');
+    const raw = localStorage.getItem('clashguard_state_v1');
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && Array.isArray(parsed.resources) && Array.isArray(parsed.bookings)) {
@@ -85,7 +85,7 @@ function loadState() {
 
 function saveState(state) {
   try {
-    localStorage.setItem('dispatch_state_v1', JSON.stringify({
+    localStorage.setItem('clashguard_state_v1', JSON.stringify({
       resources: state.resources,
       bookings: state.bookings,
     }));
@@ -93,5 +93,5 @@ function saveState(state) {
 }
 
 function clearState() {
-  try { localStorage.removeItem('dispatch_state_v1'); } catch (e) { /* noop */ }
+  try { localStorage.removeItem('clashguard_state_v1'); } catch (e) { /* noop */ }
 }
