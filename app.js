@@ -193,11 +193,15 @@
           if (isConflict) {
             flap.classList.add('conflict');
             flap.textContent = dayBookings.length + ' booked';
-            flap.title = dayBookings.map(b => b.tripName + ' — ' + b.customer).join(' / ');
+            flap.title = 'Click to view details';
+            flap.style.cursor = 'pointer';
+            flap.addEventListener('click', () => openBookingDetail(dayBookings, r));
           } else if (dayBookings.length) {
             flap.classList.add('booked');
             flap.textContent = dayBookings[0].tripName;
-            flap.title = dayBookings[0].tripName + ' — ' + dayBookings[0].customer;
+            flap.title = 'Click to view details';
+            flap.style.cursor = 'pointer';
+            flap.addEventListener('click', () => openBookingDetail(dayBookings, r));
           } else {
             flap.classList.add('open');
             flap.textContent = 'Open';
@@ -225,7 +229,9 @@
           bar.style.width = (span / 7 * 100) + '%';
           bar.style.background = conflictSet.has(b.id) ? '' : typeColor(r.type);
           bar.textContent = b.tripName;
-          bar.title = `${b.tripName} · ${b.customer} · ${b.startDate} → ${b.endDate}`;
+          bar.title = 'Click to view details';
+          bar.style.cursor = 'pointer';
+          bar.addEventListener('click', () => openBookingDetail([b], r));
           track.appendChild(bar);
         });
         row.appendChild(label); row.appendChild(track);
@@ -474,6 +480,45 @@
     pendingBooking = null; pendingConflicts = null;
   }
 
+  /* ============================= BOOKING DETAIL POPUP ============================= */
+  function openBookingDetail(bookings, resource) {
+    const body = $('booking-detail-body');
+    const conflictSet = computeConflictSet();
+    body.innerHTML = '';
+    bookings.forEach(b => {
+      const isConflict = conflictSet.has(b.id);
+      const card = el('div', 'detail-booking-card' + (isConflict ? ' conflict' : ''));
+      card.innerHTML = `
+        <div class="detail-row">
+          <span class="detail-label">Resource</span>
+          <span class="detail-value"><span class="type-chip" style="background:${typeColor(resource.type)}22;color:${typeColor(resource.type)};width:18px;height:18px;font-size:10px;display:inline-flex;border-radius:5px;margin-right:6px;">${RESOURCE_TYPES[resource.type].glyph}</span>${resource.name}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Trip / Job</span>
+          <span class="detail-value">${b.tripName}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Customer</span>
+          <span class="detail-value">${b.customer}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Dates</span>
+          <span class="detail-value">${b.startDate} → ${b.endDate}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Status</span>
+          <span class="detail-value"><span class="status-pill ${isConflict ? 'conflict' : 'ok'}">${isConflict ? 'Conflict' : 'Confirmed'}</span></span>
+        </div>
+      `;
+      body.appendChild(card);
+    });
+    $('booking-detail-modal').classList.remove('hidden');
+  }
+
+  function closeBookingDetail() {
+    $('booking-detail-modal').classList.add('hidden');
+  }
+
   function confirmSwitch() {
     const altId = $('modal-switch-btn').dataset.altId;
     if (!altId || !pendingBooking) return;
@@ -678,6 +723,10 @@
     $('modal-force-btn').addEventListener('click', confirmForce);
     $('modal-cancel-btn').addEventListener('click', () => { closeConflictModal(); toast('info', 'Booking cancelled.'); });
 
+    $('detail-close-btn').addEventListener('click', closeBookingDetail);
+    $('detail-done-btn').addEventListener('click', closeBookingDetail);
+    $('booking-detail-modal').addEventListener('click', (e) => { if (e.target.id === 'booking-detail-modal') closeBookingDetail(); });
+
     $('search-input').addEventListener('input', (e) => { searchTerm = e.target.value.trim().toLowerCase(); renderBoard(); renderTable(); });
     $('type-filter').addEventListener('change', (e) => { typeFilter = e.target.value; renderAll(); });
     document.querySelectorAll('#view-toggle button').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
@@ -711,7 +760,7 @@
 
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); return; }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') { e.preventDefault(); window.print(); return; }
-      if (e.key === 'Escape') { closeConflictModal(); closeCmdk(); if (tourStep >= 0) endTour(); return; }
+      if (e.key === 'Escape') { closeConflictModal(); closeCmdk(); closeBookingDetail(); if (tourStep >= 0) endTour(); return; }
       if (typing) return;
 
       if (e.key === '/') { e.preventDefault(); $('search-input').focus(); }

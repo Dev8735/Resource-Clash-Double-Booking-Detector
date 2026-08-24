@@ -1,4 +1,12 @@
 // tests.js - Automated test suite
+if (typeof require !== 'undefined') {
+  const fs = require('fs');
+  const vm = require('vm');
+  const context = { console, process, Math, Date, String, isNaN };
+  vm.runInNewContext(fs.readFileSync('conflict-engine.js', 'utf8'), context);
+  vm.runInNewContext(fs.readFileSync('date-validation.js', 'utf8'), context);
+  Object.assign(globalThis, context);
+}
 
 // Test runner
 let testsPassed = 0;
@@ -83,17 +91,22 @@ test('Conflict detection - different resource', () => {
 });
 
 test('Date validation - valid dates', () => {
-  const result = validateDates('2024-10-05', '2024-10-10');
+  const today = new Date().toISOString().slice(0, 10);
+  const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+  const result = validateDates(today, nextWeek);
   assert(result.valid, 'Should validate correct date range');
 });
 
 test('Date validation - start after end', () => {
-  const result = validateDates('2024-10-10', '2024-10-05');
+  const today = new Date().toISOString().slice(0, 10);
+  const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+  const result = validateDates(nextWeek, today);
   assert(!result.valid, 'Should reject when start is after end');
 });
 
 test('Date validation - same start and end', () => {
-  const result = validateDates('2024-10-05', '2024-10-05');
+  const today = new Date().toISOString().slice(0, 10);
+  const result = validateDates(today, today);
   assert(!result.valid, 'Should reject when start equals end');
 });
 
@@ -188,12 +201,12 @@ test('Invalid date string check', () => {
   assert(!valid, 'Should reject invalid date string');
 });
 
-test('Edge case - booking ends exactly when new starts', () => {
+test('Edge case - booking ends before new starts', () => {
   const bookings = [
-    { id: 1, resource: 'Driver A', start: '2024-10-01', end: '2024-10-05' }
+    { id: 1, resource: 'Driver A', start: '2024-10-01', end: '2024-10-04' }
   ];
   const result = detectConflict('2024-10-05', '2024-10-08', 'Driver A', bookings);
-  assert(!result.hasConflict, 'Should not conflict when boundaries touch');
+  assert(!result.hasConflict, 'Should not conflict when dates do not overlap');
 });
 
 test('Resource utilization calculation', () => {

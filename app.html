@@ -25,8 +25,9 @@
         </svg>
       </div>
       <div class="brand-text">
-        <h1>Resource Clash & Double-Booking Detector</h1>
-        <p class="tagline">Travel & Hospitality Operations Dashboard</p>
+        <div class="idea-name-badge">IDEA NAME</div>
+        <h1>Resource-Clash-Double-Booking-Detector</h1>
+        <p class="tagline">Travel &amp; Hospitality Operations Dashboard</p>
       </div>
     </div>
     <div class="topbar-right">
@@ -229,6 +230,20 @@
         <button type="button" class="btn btn-primary" id="modal-switch-btn">Switch to suggested resource</button>
         <button type="button" class="btn btn-secondary" id="modal-force-btn">Book anyway (keep clash)</button>
         <button type="button" class="btn btn-ghost" id="modal-cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="booking-detail-modal">
+    <div class="modal booking-detail-modal-content">
+      <div class="modal-head">
+        <div class="badge badge-info">📋</div>
+        <h2>Booking Details</h2>
+        <button type="button" class="detail-close-btn" id="detail-close-btn" title="Close">✕</button>
+      </div>
+      <div id="booking-detail-body"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="detail-done-btn">Close</button>
       </div>
     </div>
   </div>

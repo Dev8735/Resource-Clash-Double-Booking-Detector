@@ -1437,6 +1437,127 @@ kbd {
 }
 
 /* ============================================================
+   Idea name badge (topbar)
+   ============================================================ */
+.idea-name-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  background: var(--cyan-soft);
+  border: 1px solid rgba(45, 212, 234, .3);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 3px;
+}
+
+/* ============================================================
+   Booking detail modal
+   ============================================================ */
+.booking-detail-modal-content {
+  max-width: 440px;
+}
+
+.booking-detail-modal-content .modal-head {
+  position: relative;
+}
+
+.badge-info {
+  background: var(--cyan-soft);
+  color: var(--cyan);
+}
+
+.detail-close-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-faint);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: color .15s, border-color .15s;
+}
+
+.detail-close-btn:hover {
+  color: var(--text);
+  border-color: #2a3340;
+}
+
+.detail-booking-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-top: 14px;
+}
+
+.detail-booking-card.conflict {
+  border-color: rgba(255, 84, 112, .4);
+  background: var(--red-soft);
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.detail-value {
+  font-size: 13px;
+  color: var(--text);
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Clickable board cells */
+.flap.booked,
+.flap.conflict {
+  cursor: pointer;
+}
+
+.flap.booked:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px -4px rgba(52, 211, 153, .35);
+}
+
+.flap.conflict:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px -4px rgba(255, 84, 112, .45);
+}
+
+.timeline-bar {
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.timeline-bar:hover {
+  transform: scaleY(1.15);
+  box-shadow: 0 4px 14px -4px rgba(0, 0, 0, .7);
+}
+
+/* ============================================================
    Responsive
    ============================================================ */
 @media (max-width: 1100px) {
