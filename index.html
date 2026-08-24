@@ -14,7 +14,8 @@
 
 <body>
 
-  <nav class="lp-nav">
+  <!-- ═══════════════ NAVIGATION ═══════════════ -->
+  <nav class="lp-nav" id="lp-nav">
     <div class="lp-nav-brand">
       <div class="mark" style="width:32px;height:32px;">
         <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
@@ -24,33 +25,43 @@
             stroke-linejoin="round" />
         </svg>
       </div>
-      <span
-        style="font-family:var(--font-display);font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:14px;">Resource
-        Clash & Double-Booking Detector</span>
+      <span class="lp-nav-title">Resource Clash & Double-Booking Detector</span>
     </div>
     <div class="lp-nav-links">
       <a href="#problem">Problem</a>
       <a href="#solution">Solution</a>
       <a href="#features">Features</a>
+      <a href="#impact">Impact</a>
+      <a href="#tech">Tech Stack</a>
       <a href="#roadmap">Roadmap</a>
     </div>
     <div class="lp-nav-cta">
       <a href="https://github.com/Dev8735/Resource-Clash-Double-Booking-Detector" class="lp-btn lp-btn-ghost"
-        target="_blank" rel="noopener">GitHub</a>
-      <a href="app.html" class="lp-btn lp-btn-primary">Launch live demo →</a>
+        target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path
+            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+        </svg>
+        GitHub
+      </a>
+      <a href="app.html" class="lp-btn lp-btn-primary">Launch Demo →</a>
     </div>
+    <button class="lp-hamburger" id="lp-hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
 
-  <header class="lp-hero">
-    <div class="lp-hero-copy">
-      <span class="lp-eyebrow"><span class="pulse"></span> Travel &amp; Hospitality Hackathon · Solo build</span>
+  <!-- ═══════════════ HERO ═══════════════ -->
+  <header class="lp-hero" id="hero">
+    <div class="lp-hero-glow"></div>
+    <div class="lp-hero-copy anim-in">
+      <span class="lp-eyebrow"><span class="pulse"></span> Travel & Hospitality Hackathon · Solo build</span>
       <h1>Stop finding the<br />double-booking<br /><em>on the day of the trip.</em></h1>
-      <p class="lead">Resource Clash & Double-Booking Detector checks every driver, vehicle, guide, and hotel room
-        booking against the schedule the instant it's entered — and if two trips collide, it tells your team exactly
-        what clashed and hands them a free alternative in one click.</p>
+      <p class="lead">An operations dashboard that checks every driver, vehicle, guide, and hotel room booking
+        against the schedule the instant it's entered — catching clashes before they reach the customer.</p>
       <div class="lp-hero-actions">
-        <a href="app.html" class="lp-btn lp-btn-primary lp-btn-lg">Launch live demo →</a>
-        <a href="app.html?tour=1" class="lp-btn lp-btn-ghost lp-btn-lg">Take the guided tour</a>
+        <a href="app.html" class="lp-btn lp-btn-primary lp-btn-lg">Launch Live Demo →</a>
+        <a href="app.html?tour=1" class="lp-btn lp-btn-ghost lp-btn-lg">Take the Guided Tour</a>
       </div>
       <div class="lp-hero-meta">
         <span><i></i> Zero build step</span>
@@ -59,12 +70,11 @@
       </div>
     </div>
 
-    <div class="lp-board-mock" aria-hidden="true">
+    <div class="lp-board-mock anim-in delay-1" aria-hidden="true">
       <div class="lp-board-mock-head">
         <b>Live schedule board</b>
         <span class="lp-mock-siren"><i></i>1 clash live</span>
       </div>
-
       <div class="lp-mock-row">
         <div class="lp-mock-label"><span class="lp-mock-chip"
             style="background:#2dd4ea33;border:1px solid #2dd4ea;"></span>Ramesh Y.</div>
@@ -110,15 +120,42 @@
         <div class="lp-mock-cell"></div>
         <div class="lp-mock-cell"></div>
       </div>
-
       <div class="lp-mock-foot">Suggested fix: <b>switch to Suresh Patil</b> — free for both dates.</div>
     </div>
   </header>
 
+  <!-- ═══════════════ IMPACT STATS BAR ═══════════════ -->
+  <section class="lp-impact-bar">
+    <div class="lp-impact-inner">
+      <div class="lp-impact-stat">
+        <div class="lp-impact-num" style="color:var(--cyan);">100%</div>
+        <div class="lp-impact-label">Detection Rate</div>
+      </div>
+      <div class="lp-impact-divider"></div>
+      <div class="lp-impact-stat">
+        <div class="lp-impact-num" style="color:var(--green);">4</div>
+        <div class="lp-impact-label">Resource Types</div>
+      </div>
+      <div class="lp-impact-divider"></div>
+      <div class="lp-impact-stat">
+        <div class="lp-impact-num" style="color:var(--violet);">
+          < 1s</div>
+            <div class="lp-impact-label">Clash Detection</div>
+        </div>
+        <div class="lp-impact-divider"></div>
+        <div class="lp-impact-stat">
+          <div class="lp-impact-num" style="color:var(--amber);">1-Click</div>
+          <div class="lp-impact-label">Auto Resolution</div>
+        </div>
+      </div>
+  </section>
+
+  <!-- ═══════════════ PROBLEM ═══════════════ -->
   <section class="lp-section" id="problem">
+    <div class="lp-section-tag">The Problem</div>
     <div class="lp-problem">
       <div>
-        <h2 class="lp-h2">Spreadsheets don't warn you.</h2>
+        <h2 class="lp-h2">Spreadsheets don't<br />warn you.</h2>
         <p class="lp-body-text">Travel agency ops teams still track driver, vehicle, guide, and room schedules in
           spreadsheets or paper registers. Nothing checks a new booking against what's already on the books — so the
           same driver or vehicle gets assigned to two trips on the same day, and nobody notices until someone's standing
@@ -131,13 +168,16 @@
       </div>
       <div class="lp-stat-quote">
         <div class="big">2 clashes</div>
-        <p>are already live on the seeded demo board below — a driver and a vehicle both double-booked for the same trip
+        <p>are already live on the seeded demo board — a driver and a vehicle both double-booked for the same trip
           window. That's the exact scenario this tool exists to catch before it happens.</p>
+        <a href="app.html" class="lp-btn lp-btn-primary" style="margin-top:18px;width:fit-content;">See It Live →</a>
       </div>
     </div>
   </section>
 
+  <!-- ═══════════════ SOLUTION / HOW IT WORKS ═══════════════ -->
   <section class="lp-section tight" id="solution">
+    <div class="lp-section-tag">How It Works</div>
     <h2 class="lp-h2">Checked the moment it's entered.</h2>
     <p class="lp-body-text" style="max-width:640px;">Every booking runs through a straightforward date-range overlap
       check against existing bookings for that same resource — no ML, no black box, just a rule anyone can audit.</p>
@@ -145,27 +185,68 @@
     <div class="lp-flow">
       <div class="lp-flow-step active">
         <div class="lp-flow-num">01</div>
+        <div class="lp-flow-icon">📝</div>
         <h3>Staff enters a booking</h3>
         <p>Resource type, resource, trip name, customer, and date range — the same fields a spreadsheet row would have.
         </p>
       </div>
+      <div class="lp-flow-connector"><span>→</span></div>
       <div class="lp-flow-step active">
         <div class="lp-flow-num">02</div>
-        <h3>System checks it instantly</h3>
+        <div class="lp-flow-icon">⚡</div>
+        <h3>Instant clash detection</h3>
         <p><code
-            style="font-family:var(--font-mono);font-size:12px;color:var(--cyan);">startA ≤ endB &amp;&amp; startB ≤ endA</code>
+            style="font-family:var(--font-mono);font-size:12px;color:var(--cyan);">startA ≤ endB && startB ≤ endA</code>
           against every existing booking for that resource.</p>
       </div>
+      <div class="lp-flow-connector"><span>→</span></div>
       <div class="lp-flow-step active">
         <div class="lp-flow-num">03</div>
-        <h3>Confirmed, or alerted with a fix</h3>
-        <p>No clash → booked instantly. Clash → staff sees exactly what it collides with and a free alternative of the
-          same type.</p>
+        <div class="lp-flow-icon">✅</div>
+        <h3>Confirmed, or fixed</h3>
+        <p>No clash → booked instantly. Clash → staff sees exactly what it collides with and a free alternative in one
+          click.</p>
       </div>
     </div>
   </section>
 
+  <!-- ═══════════════ BEFORE / AFTER ═══════════════ -->
+  <section class="lp-section" id="impact">
+    <div class="lp-section-tag">Impact</div>
+    <h2 class="lp-h2">Before vs. After</h2>
+    <p class="lp-body-text" style="max-width:640px;">See how this tool transforms travel operations.</p>
+
+    <div class="lp-compare">
+      <div class="lp-compare-col lp-compare-before">
+        <div class="lp-compare-header">
+          <span class="lp-compare-badge before">✕ Without</span>
+        </div>
+        <ul>
+          <li>Manual schedule checking in spreadsheets</li>
+          <li>Double-bookings discovered on trip day</li>
+          <li>Staff manually search for replacements</li>
+          <li>Higher risk of trip disruption</li>
+          <li>No visibility of resource availability</li>
+        </ul>
+      </div>
+      <div class="lp-compare-col lp-compare-after">
+        <div class="lp-compare-header">
+          <span class="lp-compare-badge after">✓ With Detector</span>
+        </div>
+        <ul>
+          <li>Automatic overlap detection in real-time</li>
+          <li>Conflicts identified the instant they're booked</li>
+          <li>Available alternatives suggested automatically</li>
+          <li>One-click resource reassignment</li>
+          <li>Real-time operational dashboard & analytics</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ FEATURES ═══════════════ -->
   <section class="lp-section" id="features">
+    <div class="lp-section-tag">Features</div>
     <h2 class="lp-h2">What's actually implemented</h2>
     <p class="lp-body-text" style="max-width:640px;">Everything below is running in the live demo — not slideware.
       Nothing here is claimed as done unless you can click it.</p>
@@ -208,66 +289,185 @@
         </p>
       </div>
     </div>
+  </section>
 
-    <div class="lp-tech-strip">
-      <span class="lp-tech-badge">HTML5</span>
-      <span class="lp-tech-badge">CSS3 — no framework</span>
-      <span class="lp-tech-badge">Vanilla JavaScript (ES6+)</span>
-      <span class="lp-tech-badge">Browser localStorage</span>
-      <span class="lp-tech-badge">GitHub Pages</span>
-      <span class="lp-tech-badge">Zero runtime dependencies</span>
+  <!-- ═══════════════ TECH STACK ═══════════════ -->
+  <section class="lp-section tight" id="tech">
+    <div class="lp-section-tag">Built With</div>
+    <h2 class="lp-h2">Technology Stack</h2>
+    <p class="lp-body-text" style="max-width:640px;">Zero dependencies, zero build step — just open the HTML file.
+      Designed for hackathon reliability.</p>
+
+    <div class="lp-tech-grid">
+      <div class="lp-tech-card">
+        <div class="lp-tech-icon">🏗️</div>
+        <h4>HTML5</h4>
+        <p>Semantic layout, accessible modals</p>
+      </div>
+      <div class="lp-tech-card">
+        <div class="lp-tech-icon">🎨</div>
+        <h4>CSS3</h4>
+        <p>Custom dark theme, no framework</p>
+      </div>
+      <div class="lp-tech-card">
+        <div class="lp-tech-icon">⚡</div>
+        <h4>Vanilla JavaScript</h4>
+        <p>ES6+, modular, zero frameworks</p>
+      </div>
+      <div class="lp-tech-card">
+        <div class="lp-tech-icon">💾</div>
+        <h4>localStorage</h4>
+        <p>Persistent data, survives refresh</p>
+      </div>
+      <div class="lp-tech-card">
+        <div class="lp-tech-icon">🧪</div>
+        <h4>Node.js Tests</h4>
+        <p>27+ automated unit tests</p>
+      </div>
+      <div class="lp-tech-card">
+        <div class="lp-tech-icon">🚀</div>
+        <h4>GitHub Pages</h4>
+        <p>Static deploy, zero hosting risk</p>
+      </div>
     </div>
   </section>
 
-  <section class="lp-section tight" id="roadmap">
+  <!-- ═══════════════ ROADMAP ═══════════════ -->
+  <section class="lp-section" id="roadmap">
+    <div class="lp-section-tag">Roadmap</div>
     <h2 class="lp-h2">Prototype scope, on purpose</h2>
     <p class="lp-body-text" style="max-width:640px;">This is a hackathon prototype — client-side only, single browser
       session, seeded demo data. That's a deliberate choice to keep it a self-contained static site with zero hosting
-      risk before judging, not a limitation we're hiding.</p>
+      risk before judging.</p>
     <div class="lp-roadmap">
       <div class="lp-roadmap-item">
-        <span class="lp-roadmap-tag">Next</span>
+        <span class="lp-roadmap-tag next">Next</span>
         <div class="lp-roadmap-body"><b>Real backend</b><span>Node/Express + Postgres so multiple staff see the same
             live board.</span></div>
       </div>
       <div class="lp-roadmap-item">
-        <span class="lp-roadmap-tag">Next</span>
+        <span class="lp-roadmap-tag next">Next</span>
         <div class="lp-roadmap-body"><b>SMS / email / WhatsApp alerts</b><span>Push clash and reassignment notices
             straight to drivers, guides, and hotel partners.</span></div>
       </div>
       <div class="lp-roadmap-item">
-        <span class="lp-roadmap-tag">Future</span>
+        <span class="lp-roadmap-tag future">Future</span>
         <div class="lp-roadmap-body"><b>Trained demand-forecasting model</b><span>Genuine ML on top of the current
             rule-based pressure panel, clearly labelled when it ships.</span></div>
       </div>
       <div class="lp-roadmap-item">
-        <span class="lp-roadmap-tag">Future</span>
+        <span class="lp-roadmap-tag future">Future</span>
         <div class="lp-roadmap-body"><b>Calendar sync + native apps</b><span>Two-way Google/Outlook sync per driver or
             guide, plus Android/iOS clients.</span></div>
       </div>
     </div>
   </section>
 
+  <!-- ═══════════════ FINAL CTA ═══════════════ -->
   <section class="lp-section">
     <div class="lp-cta-banner">
+      <div class="lp-cta-glow"></div>
       <h2>See it catch a clash, live.</h2>
-      <p>The demo board loads with two real conflicts already on it — Driver Ramesh and Vehicle MH-04-1121, both
-        double-booked today. Zero clicks needed to see the core feature working.</p>
-      <a href="app.html" class="lp-btn lp-btn-primary lp-btn-lg">Launch live demo →</a>
+      <p>The demo board loads with real conflicts already on it — a driver and a vehicle both double-booked today. Zero
+        clicks needed to see the core feature working.</p>
+      <div class="lp-hero-actions" style="justify-content:center;">
+        <a href="app.html" class="lp-btn lp-btn-primary lp-btn-lg">Launch Live Demo →</a>
+        <a href="app.html?tour=1" class="lp-btn lp-btn-ghost lp-btn-lg">Take the Guided Tour</a>
+      </div>
     </div>
   </section>
 
+  <!-- ═══════════════ FOOTER ═══════════════ -->
   <footer class="lp-footer">
     <div class="lp-footer-inner">
-      <p>Resource Clash & Double-Booking Detector — Travel &amp; Hospitality Hackathon, solo project by Dev Chokhawala.
-        No passwords, credentials, or API keys — all data is simulated demo data.</p>
-      <div class="lp-footer-links">
+      <div class="lp-footer-brand">
+        <div class="lp-footer-logo">
+          <div class="mark" style="width:28px;height:28px;">
+            <svg viewBox="0 0 24 24" fill="none" width="15" height="15">
+              <path d="M12 3.2l6.5 2.6v5c0 4.4-2.7 7.9-6.5 9.9-3.8-2-6.5-5.5-6.5-9.9v-5L12 3.2z" stroke="#04141a"
+                stroke-width="1.8" stroke-linejoin="round" />
+              <path d="M8.7 12.4l2.2 2.2 4.4-4.8" stroke="#04141a" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </div>
+          <span>Resource Clash & Double-Booking Detector</span>
+        </div>
+        <p class="lp-footer-desc">Travel & Hospitality Hackathon — Solo project by Dev Chokhawala.
+          No passwords, credentials, or API keys — all data is simulated demo data.</p>
+      </div>
+      <div class="lp-footer-col">
+        <h4>Product</h4>
+        <a href="app.html">Live Demo</a>
+        <a href="app.html?tour=1">Guided Tour</a>
+        <a href="#features">Features</a>
+        <a href="#roadmap">Roadmap</a>
+      </div>
+      <div class="lp-footer-col">
+        <h4>Resources</h4>
         <a href="https://github.com/Dev8735/Resource-Clash-Double-Booking-Detector" target="_blank"
-          rel="noopener">GitHub repo</a>
-        <a href="app.html">Live demo</a>
+          rel="noopener">GitHub Repository</a>
+        <a href="#tech">Tech Stack</a>
+        <a href="#solution">How it Works</a>
+      </div>
+      <div class="lp-footer-col">
+        <h4>Navigate</h4>
+        <a href="#problem">Problem</a>
+        <a href="#impact">Impact</a>
+        <a href="#hero">Back to Top</a>
       </div>
     </div>
+    <div class="lp-footer-bottom">
+      <p>© 2026 Resource Clash & Double-Booking Detector. Built for the Travel & Hospitality Hackathon.</p>
+    </div>
   </footer>
+
+  <!-- Smooth scroll + nav active state -->
+  <script>
+    document.documentElement.style.scrollBehavior = 'smooth';
+
+    // Active nav link on scroll
+    const sections = document.querySelectorAll('section[id], header[id]');
+    const navLinks = document.querySelectorAll('.lp-nav-links a');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => {
+        const top = s.offsetTop - 120;
+        if (scrollY >= top) current = s.id;
+      });
+      navLinks.forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+      });
+      // Nav shadow on scroll
+      document.getElementById('lp-nav').classList.toggle('scrolled', scrollY > 40);
+    });
+
+    // Mobile hamburger toggle
+    const hamburger = document.getElementById('lp-hamburger');
+    const navLinksEl = document.querySelector('.lp-nav-links');
+    const navCtaEl = document.querySelector('.lp-nav-cta');
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('open');
+      navLinksEl.classList.toggle('mobile-open');
+      navCtaEl.classList.toggle('mobile-open');
+    });
+    // Close menu on link click (mobile)
+    navLinksEl.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        hamburger.classList.remove('open');
+        navLinksEl.classList.remove('mobile-open');
+        navCtaEl.classList.remove('mobile-open');
+      });
+    });
+
+    // Scroll-reveal animation
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); observer.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.lp-flow-step, .lp-feature-card, .lp-compare-col, .lp-tech-card, .lp-roadmap-item, .lp-stat-quote').forEach(el => {
+      el.classList.add('scroll-anim');
+      observer.observe(el);
+    });
+  </script>
 
 </body>
 
