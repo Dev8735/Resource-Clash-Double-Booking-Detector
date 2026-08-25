@@ -1503,6 +1503,37 @@ kbd {
   background: var(--red-soft);
 }
 
+.btn-sm {
+  width: auto;
+  padding: 8px 14px;
+  font-size: 12px;
+  margin-top: 0;
+}
+
+.detail-resolve {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(255, 84, 112, .35);
+}
+
+.detail-resolve-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.detail-resolve-actions.hidden {
+  display: none;
+}
+
+.resolve-none {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin: 0;
+}
+
 .detail-row {
   display: flex;
   justify-content: space-between;
