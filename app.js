@@ -509,10 +509,64 @@
           <span class="detail-label">Status</span>
           <span class="detail-value"><span class="status-pill ${isConflict ? 'conflict' : 'ok'}">${isConflict ? 'Conflict' : 'Confirmed'}</span></span>
         </div>
+        ${isConflict ? `<div class="detail-resolve" data-booking-id="${b.id}"></div>` : ''}
       `;
       body.appendChild(card);
+
+      if (isConflict) {
+        const resolveWrap = card.querySelector('.detail-resolve');
+        renderResolvePanel(resolveWrap, b, resource);
+      }
     });
     $('booking-detail-modal').classList.remove('hidden');
+  }
+
+  function renderResolvePanel(wrap, booking, resource) {
+    const alts = findAvailableAlternatives(resource.type, booking.startDate, booking.endDate, resource.id);
+    const resolveBtn = el('button', 'btn btn-secondary btn-sm resolve-open-btn', 'Resolve conflict');
+    resolveBtn.type = 'button';
+    const actions = el('div', 'detail-resolve-actions hidden');
+
+    if (alts.length) {
+      const moveBtn = el('button', 'btn btn-primary btn-sm', `Move to ${alts[0].name}`);
+      moveBtn.type = 'button';
+      moveBtn.addEventListener('click', () => resolveConflictMove(booking.id, alts[0].id));
+      actions.appendChild(moveBtn);
+    } else {
+      const note = el('p', 'resolve-none', `No free ${typeLabel(resource.type).toLowerCase()} available for these dates.`);
+      actions.appendChild(note);
+    }
+
+    const cancelBtn = el('button', 'btn btn-danger btn-sm', 'Cancel this booking');
+    cancelBtn.type = 'button';
+    cancelBtn.addEventListener('click', () => resolveConflictCancel(booking.id));
+    actions.appendChild(cancelBtn);
+
+    resolveBtn.addEventListener('click', () => actions.classList.toggle('hidden'));
+
+    wrap.appendChild(resolveBtn);
+    wrap.appendChild(actions);
+  }
+
+  function resolveConflictMove(bookingId, altResourceId) {
+    const b = state.bookings.find(x => x.id === bookingId);
+    const alt = resourceById(altResourceId);
+    if (!b || !alt) return;
+    snapshot();
+    const oldResource = resourceById(b.resourceId);
+    b.resourceId = altResourceId;
+    saveState(state);
+    renderAll();
+    toast('ok', `Moved to ${alt.name} — conflict resolved.`);
+    pushFeed('ok', 'Conflict resolved', `${b.tripName} moved from ${oldResource ? oldResource.name : 'previous resource'} to ${alt.name}.`);
+    closeBookingDetail();
+  }
+
+  function resolveConflictCancel(bookingId) {
+    const b = state.bookings.find(x => x.id === bookingId);
+    if (!b) return;
+    deleteBooking(bookingId);
+    closeBookingDetail();
   }
 
   function closeBookingDetail() {
